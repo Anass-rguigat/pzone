@@ -20,6 +20,12 @@ use App\Http\Controllers\ExpansionCardController;
 use App\Http\Controllers\ServerController;
 use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\DiscountComponentController;
+use App\Http\Controllers\CableConnectorController;
+use App\Http\Controllers\BatteryController;
+use App\Http\Controllers\StockLevelController;
+use App\Http\Controllers\StockMovementController;
+use App\Http\Controllers\SupplierController;
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -29,18 +35,22 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+
 
 Route::middleware('auth')->group(function () {
-    
+
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard');
+    });
+    Route::resource('suppliers', SupplierController::class);
+
     Route::get('discountComponents/create', [DiscountComponentController::class, 'create'])->name('discountComponents.create');
     Route::get('discountComponents', [DiscountComponentController::class, 'index'])->name('discountComponents.index');
     Route::post('discountComponents', [DiscountComponentController::class, 'store'])->name('discountComponents.store');
     Route::get('discountComponents/{discount}/edit', [DiscountComponentController::class, 'edit'])->name('discountComponents.edit'); // Edit route should come before update
     Route::put('discountComponents/{discount}', [DiscountComponentController::class, 'update'])->name('discountComponents.update');
     Route::delete('discountComponents/{discount}', [DiscountComponentController::class, 'destroy'])->name('discountComponents.destroy');
+    Route::get('/discountComponents/{discount}', [DiscountComponentController::class, 'show'])->name('discounts.show');
 
     Route::resource('discounts', DiscountController::class);
 
@@ -58,6 +68,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('graphic-cards', GraphicCardController::class);
     Route::resource('fiber-optic-cards', FiberOpticCardController::class);
     Route::resource('expansion-cards', ExpansionCardController::class);
+    Route::resource('cable-connectors', CableConnectorController::class);
+    Route::resource('batteries', BatteryController::class);
+
+    Route::resource('stock-movements', StockMovementController::class);
+    Route::get('/get-components/{type}', [StockMovementController::class, 'getComponents']);
+
+
+    Route::get('/stock-levels', [StockLevelController::class, 'index'])->name('stock-levels.index');
+    Route::get('/stock-levels/{stockLevel}', [StockLevelController::class, 'show'])->name('stock-levels.show');
 
     Route::resource('servers', ServerController::class);
 
@@ -66,4 +85,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

@@ -9,22 +9,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
-class CoolingSolutionController extends Controller {
-    public function index() {
-        $coolingSolutions = CoolingSolution::with(['brand', 'image', 'servers'])->get(); // Load servers as well
+class CoolingSolutionController extends Controller
+{
+    public function index()
+    {
+        $coolingSolutions = CoolingSolution::with(['brand', 'image', 'servers'])->get();
         return Inertia::render('CoolingSolutions/Index', ['coolingSolutions' => $coolingSolutions]);
     }
 
-    public function create() {
+    public function create()
+    {
         $brands = \App\Models\Brand::all();
-        $servers = \App\Models\Server::all(); // Get all Servers to attach
+        $servers = \App\Models\Server::all();
         return Inertia::render('CoolingSolutions/Create', [
             'brands' => $brands,
-            'servers' => $servers, // Pass servers to the view
+            'servers' => $servers,
         ]);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|string|max:255',
@@ -32,12 +36,11 @@ class CoolingSolutionController extends Controller {
             'manufacturer' => 'required|string|max:255',
             'power_rating' => 'required|numeric|min:0',
             'price' => 'required|numeric|min:0',
-            'server_ids' => 'nullable|array', // Accept an array of Server IDs
-            'server_ids.*' => 'exists:servers,id', // Ensure all Server IDs are valid
+            'server_ids' => 'nullable|array',
+            'server_ids.*' => 'exists:servers,id',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Create the Cooling Solution record
         $coolingSolution = CoolingSolution::create([
             'name' => $validated['name'],
             'type' => $validated['type'],
@@ -47,12 +50,10 @@ class CoolingSolutionController extends Controller {
             'price' => $validated['price'],
         ]);
 
-        // Attach the servers if provided
         if (isset($validated['server_ids']) && count($validated['server_ids']) > 0) {
             $coolingSolution->servers()->attach($validated['server_ids']);
         }
 
-        // Handle the image upload
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('cooling_solutions', 'public');
             $coolingSolution->image()->create(['url' => $path]);
@@ -61,10 +62,11 @@ class CoolingSolutionController extends Controller {
         return redirect()->route('cooling-solutions.index');
     }
 
-    public function edit(CoolingSolution $coolingSolution) {
+    public function edit(CoolingSolution $coolingSolution)
+    {
         $brands = \App\Models\Brand::all();
         $servers = \App\Models\Server::all();
-        $coolingSolution->load('brand', 'image', 'servers'); // Load all related data
+        $coolingSolution->load('brand', 'image', 'servers');
         return Inertia::render('CoolingSolutions/Edit', [
             'coolingSolution' => $coolingSolution,
             'brands' => $brands,
@@ -72,9 +74,8 @@ class CoolingSolutionController extends Controller {
         ]);
     }
 
-    // Update Cooling Solution
-    public function update(Request $request, CoolingSolution $coolingSolution) {
-        // Validate the incoming request data
+    public function update(Request $request, CoolingSolution $coolingSolution)
+    {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'nullable|string|max:255',
@@ -84,10 +85,9 @@ class CoolingSolutionController extends Controller {
             'price' => 'nullable|numeric|min:0',
             'server_ids' => 'nullable|array',
             'server_ids.*' => 'exists:servers,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Only validate image if provided
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Update the Cooling Solution model with the validated data
         $coolingSolution->update([
             'name' => $validated['name'],
             'type' => $validated['type'] ?? $coolingSolution->type,
@@ -97,53 +97,42 @@ class CoolingSolutionController extends Controller {
             'price' => $validated['price'] ?? $coolingSolution->price,
         ]);
 
-        // Sync the servers if any server_ids are provided
         if (isset($validated['server_ids'])) {
             $coolingSolution->servers()->sync($validated['server_ids']);
         }
 
-        // Check if a new image is uploaded
         if ($request->hasFile('image')) {
-            // Delete the old image if it exists
             if ($coolingSolution->image) {
-                // Delete the old image from the storage
                 Storage::disk('public')->delete($coolingSolution->image->url);
-                // Delete the old image record
                 $coolingSolution->image()->delete();
             }
 
-            // Store the new image
             $path = $request->file('image')->store('cooling_solutions', 'public');
 
-            // Create a new image record associated with the Cooling Solution
             $coolingSolution->image()->create(['url' => $path]);
         }
 
-        // Redirect back to the Cooling Solution index or show the updated Cooling Solution
         return redirect()->route('cooling-solutions.index');
     }
 
-    public function show(CoolingSolution $coolingSolution) {
-        // Load the related brand, image, and servers
+    public function show(CoolingSolution $coolingSolution)
+    {
         $coolingSolution->load('brand', 'image', 'servers');
 
-        // Pass the Cooling Solution data to the Inertia view
         return Inertia::render('CoolingSolutions/Show', [
             'coolingSolution' => $coolingSolution,
         ]);
     }
 
-    public function destroy(CoolingSolution $coolingSolution) {
-        // Delete the related image if it exists
+    public function destroy(CoolingSolution $coolingSolution)
+    {
         if ($coolingSolution->image) {
             Storage::disk('public')->delete($coolingSolution->image->url);
             $coolingSolution->image()->delete();
         }
 
-        // Detach servers if any are attached
         $coolingSolution->servers()->detach();
 
-        // Delete the Cooling Solution
         $coolingSolution->delete();
 
         return redirect()->route('cooling-solutions.index');

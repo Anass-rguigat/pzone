@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from '@inertiajs/inertia-react';
-import { Inertia } from '@inertiajs/inertia-react';
 import { Link } from '@inertiajs/inertia-react';
+import { Layout } from '@/Layouts/layout';
 
 const Create = ({
   rams,
@@ -16,6 +16,8 @@ const Create = ({
   cooling_solutions,
   graphic_cards,
   expansion_cards,
+  cable_connector,
+  battery,
 }: any) => {
   const { data, setData, post, processing, errors } = useForm({
     name: '',
@@ -26,337 +28,174 @@ const Create = ({
     components: [],
   });
 
+  const toggleComponent = (type: string, id: number) => {
+    const componentIndex = data.components.findIndex(
+      (c: any) => c.type === type && c[`${type.slice(0, -1)}_id`] === id
+    );
+
+    if (componentIndex > -1) {
+      setData('components', data.components.filter((_, i) => i !== componentIndex));
+    } else {
+      setData('components', [
+        ...data.components,
+        { [`${type.slice(0, -1)}_id`]: id, type }
+      ]);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     post(route('discountComponents.store'));
   };
 
-  const handleComponentChange = (type: string, id: number) => {
-    const fieldName = `${type.slice(0, -1)}_id`; // 'rams' -> 'ram_id'
-
-    // Add the selected component to the components array
-    setData('components', [
-      ...data.components,
-      { [fieldName]: id, type },
-    ]);
-  };
-
-  const handleRemoveComponent = (type: string, id: number) => {
-    const fieldName = `${type.slice(0, -1)}_id`; // 'rams' -> 'ram_id'
-
-    // Remove the component from the components array
-    setData('components', data.components.filter((item) => item[fieldName] !== id || item.type !== type));
-  };
+  const componentGroups = [
+    { name: 'RAMs', items: rams, type: 'rams' },
+    { name: 'Processeurs', items: processors, type: 'processors' },
+    { name: 'Cartes mères', items: motherboards, type: 'motherboards' },
+    { name: 'Contrôleurs RAID', items: raid_controllers, type: 'raid_controllers' },
+    { name: 'Châssis', items: chassis, type: 'chassis' },
+    { name: 'Cartes fibre optique', items: fiber_optic_cards, type: 'fiber_optic_cards' },
+    { name: 'Disques durs', items: hard_drives, type: 'hard_drives' },
+    { name: 'Cartes réseau', items: network_cards, type: 'network_cards' },
+    { name: 'Alimentations', items: power_supplies, type: 'power_supplies' },
+    { name: 'Refroidissements', items: cooling_solutions, type: 'cooling_solutions' },
+    { name: 'Cartes graphiques', items: graphic_cards, type: 'graphic_cards' },
+    { name: "Cartes d'extension", items: expansion_cards, type: 'expansion_cards' },
+    { name: 'Connecteurs câble', items: cable_connector, type: 'cable_connectors' },
+    { name: 'Batteries', items: battery, type: 'batteries' },
+  ];
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Create Discount</h1>
-      <Link href={route('discountComponents.index')} className="btn btn-secondary mb-4">Back to List</Link>
-
-      <form onSubmit={handleSubmit}>
-        {/* Discount Name */}
-        <div className="mb-4">
-          <label htmlFor="name" className="block">Discount Name</label>
-          <input
-            type="text"
-            id="name"
-            className="form-input w-full"
-            value={data.name}
-            onChange={(e) => setData('name', e.target.value)}
-          />
-          {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-        </div>
-
-        {/* Discount Type */}
-        <div className="mb-4">
-          <label htmlFor="discount_type" className="block">Discount Type</label>
-          <select
-            id="discount_type"
-            className="form-select w-full"
-            value={data.discount_type}
-            onChange={(e) => setData('discount_type', e.target.value)}
+    <Layout>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Créer une remise</h1>
+          <Link 
+            href={route('discountComponents.index')}
+            className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg transition-colors"
           >
-            <option value="percentage">Percentage</option>
-            <option value="fixed">Fixed</option>
-          </select>
-          {errors.discount_type && <p className="text-red-500 text-sm">{errors.discount_type}</p>}
+            ← Retour
+          </Link>
         </div>
 
-        {/* Discount Value */}
-        <div className="mb-4">
-          <label htmlFor="value" className="block">Discount Value</label>
-          <input
-            type="number"
-            id="value"
-            className="form-input w-full"
-            value={data.value}
-            onChange={(e) => setData('value', parseFloat(e.target.value))}
-          />
-          {errors.value && <p className="text-red-500 text-sm">{errors.value}</p>}
-        </div>
-
-        {/* Start Date */}
-        <div className="mb-4">
-          <label htmlFor="start_date" className="block">Start Date</label>
-          <input
-            type="date"
-            id="start_date"
-            className="form-input w-full"
-            value={data.start_date}
-            onChange={(e) => setData('start_date', e.target.value)}
-          />
-          {errors.start_date && <p className="text-red-500 text-sm">{errors.start_date}</p>}
-        </div>
-
-        {/* End Date */}
-        <div className="mb-4">
-          <label htmlFor="end_date" className="block">End Date</label>
-          <input
-            type="date"
-            id="end_date"
-            className="form-input w-full"
-            value={data.end_date}
-            onChange={(e) => setData('end_date', e.target.value)}
-          />
-          {errors.end_date && <p className="text-red-500 text-sm">{errors.end_date}</p>}
-        </div>
-
-        {/* Component Selections */}
-        
-        {/* RAM Selection */}
-        <div className="mb-4">
-          <h4>RAMs</h4>
-          {rams.length === 0 ? (
-            <p>No RAMs available</p>
-          ) : (
-            rams.map((ram: any) => (
-              <div key={ram.id} className="flex items-center mb-2">
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-lg">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nom de la remise</label>
                 <input
-                  type="checkbox"
-                  id={`ram-${ram.id}`}
-                  onChange={() => handleComponentChange('rams', ram.id)}
+                  type="text"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={data.name}
+                  onChange={(e) => setData('name', e.target.value)}
                 />
-                <label htmlFor={`ram-${ram.id}`} className="ml-2">{ram.name}</label>
+                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
               </div>
-            ))
-          )}
-        </div>
 
-        {/* Processor Selection */}
-        <div className="mb-4">
-          <h4>Processors</h4>
-          {processors.length === 0 ? (
-            <p>No Processors available</p>
-          ) : (
-            processors.map((processor: any) => (
-              <div key={processor.id} className="flex items-center mb-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type de remise</label>
+                <select
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={data.discount_type}
+                  onChange={(e) => setData('discount_type', e.target.value)}
+                >
+                  <option value="percentage">Pourcentage</option>
+                  <option value="fixed">Montant fixe</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Valeur</label>
                 <input
-                  type="checkbox"
-                  id={`processor-${processor.id}`}
-                  onChange={() => handleComponentChange('processors', processor.id)}
+                  type="number"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={data.value}
+                  onChange={(e) => setData('value', parseFloat(e.target.value))}
                 />
-                <label htmlFor={`processor-${processor.id}`} className="ml-2">{processor.name}</label>
+                {errors.value && <p className="text-red-500 text-sm mt-1">{errors.value}</p>}
               </div>
-            ))
-          )}
-        </div>
 
-        {/* Motherboard Selection */}
-        <div className="mb-4">
-          <h4>Motherboards</h4>
-          {motherboards.length === 0 ? (
-            <p>No Motherboards available</p>
-          ) : (
-            motherboards.map((motherboard: any) => (
-              <div key={motherboard.id} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id={`motherboard-${motherboard.id}`}
-                  onChange={() => handleComponentChange('motherboards', motherboard.id)}
-                />
-                <label htmlFor={`motherboard-${motherboard.id}`} className="ml-2">{motherboard.name}</label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
+                  <input
+                    type="date"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={data.start_date}
+                    onChange={(e) => setData('start_date', e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
+                  <input
+                    type="date"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={data.end_date}
+                    onChange={(e) => setData('end_date', e.target.value)}
+                  />
+                </div>
               </div>
-            ))
-          )}
-        </div>
+            </div>
+          </div>
 
-        {/* RAID Controller Selection */}
-        <div className="mb-4">
-          <h4>RAID Controllers</h4>
-          {raid_controllers.length === 0 ? (
-            <p>No RAID Controllers available</p>
-          ) : (
-            raid_controllers.map((raid: any) => (
-              <div key={raid.id} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id={`raid_controller-${raid.id}`}
-                  onChange={() => handleComponentChange('raid_controllers', raid.id)}
-                />
-                <label htmlFor={`raid_controller-${raid.id}`} className="ml-2">{raid.name}</label>
-              </div>
-            ))
-          )}
-        </div>
+          <div className="border-t pt-6">
+            <h3 className="text-xl font-semibold mb-6">Composants concernés</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {componentGroups.map((group) => (
+                <div key={group.type} className="border rounded-lg p-4 bg-gray-50">
+                  <h4 className="font-medium mb-3">{group.name}</h4>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {group.items.length === 0 ? (
+                      <p className="text-gray-500 text-sm">Aucun élément disponible</p>
+                    ) : (
+                      group.items.map((item: any) => {
+                        const isSelected = data.components.some(
+                          (c: any) => c.type === group.type && c[`${group.type.slice(0, -1)}_id`] === item.id
+                        );
 
-        {/* Chassis Selection */}
-        <div className="mb-4">
-          <h4>Chassis</h4>
-          {chassis.length === 0 ? (
-            <p>No Chassis available</p>
-          ) : (
-            chassis.map((chassisItem: any) => (
-              <div key={chassisItem.id} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id={`chassis-${chassisItem.id}`}
-                  onChange={() => handleComponentChange('chassis', chassisItem.id)}
-                />
-                <label htmlFor={`chassis-${chassisItem.id}`} className="ml-2">{chassisItem.name}</label>
-              </div>
-            ))
-          )}
-        </div>
+                        return (
+                          <label 
+                            key={item.id}
+                            className={`flex items-center p-2 rounded cursor-pointer ${
+                              isSelected ? 'bg-blue-100' : 'hover:bg-gray-200'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleComponent(group.type, item.id)}
+                              className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            />
+                            <span className="ml-2 text-sm">{item.name}</span>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-        {/* Fiber Optic Card Selection */}
-        <div className="mb-4">
-          <h4>Fiber Optic Cards</h4>
-          {fiber_optic_cards.length === 0 ? (
-            <p>No Fiber Optic Cards available</p>
-          ) : (
-            fiber_optic_cards.map((fiber: any) => (
-              <div key={fiber.id} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id={`fiber_optic_card-${fiber.id}`}
-                  onChange={() => handleComponentChange('fiber_optic_cards', fiber.id)}
-                />
-                <label htmlFor={`fiber_optic_card-${fiber.id}`} className="ml-2">{fiber.name}</label>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Hard Drive Selection */}
-        <div className="mb-4">
-          <h4>Hard Drives</h4>
-          {hard_drives.length === 0 ? (
-            <p>No Hard Drives available</p>
-          ) : (
-            hard_drives.map((hardDrive: any) => (
-              <div key={hardDrive.id} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id={`hard_drive-${hardDrive.id}`}
-                  onChange={() => handleComponentChange('hard_drives', hardDrive.id)}
-                />
-                <label htmlFor={`hard_drive-${hardDrive.id}`} className="ml-2">{hardDrive.name}</label>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Network Card Selection */}
-        <div className="mb-4">
-          <h4>Network Cards</h4>
-          {network_cards.length === 0 ? (
-            <p>No Network Cards available</p>
-          ) : (
-            network_cards.map((networkCard: any) => (
-              <div key={networkCard.id} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id={`network_card-${networkCard.id}`}
-                  onChange={() => handleComponentChange('network_cards', networkCard.id)}
-                />
-                <label htmlFor={`network_card-${networkCard.id}`} className="ml-2">{networkCard.name}</label>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Power Supply Selection */}
-        <div className="mb-4">
-          <h4>Power Supplies</h4>
-          {power_supplies.length === 0 ? (
-            <p>No Power Supplies available</p>
-          ) : (
-            power_supplies.map((powerSupply: any) => (
-              <div key={powerSupply.id} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id={`power_supply-${powerSupply.id}`}
-                  onChange={() => handleComponentChange('power_supplies', powerSupply.id)}
-                />
-                <label htmlFor={`power_supply-${powerSupply.id}`} className="ml-2">{powerSupply.name}</label>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Cooling Solution Selection */}
-        <div className="mb-4">
-          <h4>Cooling Solutions</h4>
-          {cooling_solutions.length === 0 ? (
-            <p>No Cooling Solutions available</p>
-          ) : (
-            cooling_solutions.map((coolingSolution: any) => (
-              <div key={coolingSolution.id} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id={`cooling_solution-${coolingSolution.id}`}
-                  onChange={() => handleComponentChange('cooling_solutions', coolingSolution.id)}
-                />
-                <label htmlFor={`cooling_solution-${coolingSolution.id}`} className="ml-2">{coolingSolution.name}</label>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Graphic Card Selection */}
-        <div className="mb-4">
-          <h4>Graphic Cards</h4>
-          {graphic_cards.length === 0 ? (
-            <p>No Graphic Cards available</p>
-          ) : (
-            graphic_cards.map((graphicCard: any) => (
-              <div key={graphicCard.id} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id={`graphic_card-${graphicCard.id}`}
-                  onChange={() => handleComponentChange('graphic_cards', graphicCard.id)}
-                />
-                <label htmlFor={`graphic_card-${graphicCard.id}`} className="ml-2">{graphicCard.name}</label>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Expansion Card Selection */}
-        <div className="mb-4">
-          <h4>Expansion Cards</h4>
-          {expansion_cards.length === 0 ? (
-            <p>No Expansion Cards available</p>
-          ) : (
-            expansion_cards.map((expansionCard: any) => (
-              <div key={expansionCard.id} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id={`expansion_card-${expansionCard.id}`}
-                  onChange={() => handleComponentChange('expansion_cards', expansionCard.id)}
-                />
-                <label htmlFor={`expansion_card-${expansionCard.id}`} className="ml-2">{expansionCard.name}</label>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Submit Button */}
-        <button type="submit" className="btn btn-primary" disabled={processing}>
-          {processing ? 'Processing...' : 'Create Discount'}
-        </button>
-      </form>
-    </div>
+          <div className="mt-8 flex justify-end">
+            <button
+              type="submit"
+              disabled={processing}
+              className="text-green-900 hover:text-white border border-green-800 hover:bg-green-900 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-600 dark:text-green-400 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800 mr-2"
+            >
+              {processing ? 'Création en cours...' : 'Créer la remise'}
+            </button>
+            <Link href="/discountComponents" className="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+                            Retour à la liste
+            </Link>
+          </div>
+        </form>
+      </div>
+    </Layout>
   );
 };
 

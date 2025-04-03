@@ -1,6 +1,6 @@
 import { Link, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Layout } from '@/Layouts/layout';
 
 interface Brand {
     id: number;
@@ -47,41 +47,35 @@ export default function Edit({ graphicCard, brands, servers }: Props) {
         graphicCard.image?.url ? `/storage/${graphicCard.image.url}` : null
     );
 
-    // Handle file input
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             setData('image', file);
 
-            // Image preview
             const reader = new FileReader();
             reader.onload = () => setSelectedImage(reader.result as string);
             reader.readAsDataURL(file);
         }
     };
 
-    // Submit the form using FormData
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const formData = new FormData();
 
         formData.append('_method', 'PUT');
         formData.append('name', data.name);
-        formData.append('price', String(data.price)); // Add price to formData
+        formData.append('price', String(data.price));
         formData.append('brand_id', String(data.brand_id));
         formData.append('gpu_architecture', data.gpu_architecture);
         formData.append('memory_type', data.memory_type);
         formData.append('power_rating', String(data.power_rating));
 
-        // Add selected servers
         data.server_ids.forEach((id) => formData.append('server_ids[]', String(id)));
 
-        // Append image if it exists
         if (data.image) {
             formData.append('image', data.image);
         }
 
-        // Send data using post method
         post(`/graphic-cards/${graphicCard.id}`, {
             data: formData,
             onSuccess: () => {
@@ -97,154 +91,169 @@ export default function Edit({ graphicCard, brands, servers }: Props) {
     }, [graphicCard]);
 
     return (
-        <AuthenticatedLayout
-            header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                    Dashboard
-                </h2>
-            }
-        >
-            <h1 className="text-2xl font-bold mb-4">Modifier une Carte Graphique</h1>
+        <Layout>
+            <div className="px-4 py-6 sm:px-6">
+                <h1 className="text-2xl font-semibold mb-6">Modifier une Carte Graphique</h1>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Name */}
-                <div>
-                    <label className="block font-medium">Nom de la carte graphique</label>
-                    <input
-                        type="text"
-                        value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
-                        className="w-full border p-2 rounded"
-                        required
-                    />
-                </div>
-
-                {/* Price */}
-                <div>
-                    <label className="block font-medium">Prix</label>
-                    <input
-                        type="number"
-                        value={data.price}
-                        onChange={(e) => setData('price', Number(e.target.value))}
-                        className="w-full border p-2 rounded"
-                        required
-                        step="0.01"
-                    />
-                </div>
-
-                {/* Brand Selection */}
-                <div>
-                    <label className="block font-medium">Marque</label>
-                    <select
-                        value={data.brand_id}
-                        onChange={(e) => setData('brand_id', Number(e.target.value))}
-                        className="w-full border p-2 rounded"
-                        required
-                    >
-                        <option value={0} disabled>Sélectionner une marque</option>
-                        {brands.map((brand) => (
-                            <option key={brand.id} value={brand.id}>
-                                {brand.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Server Selection */}
-                <div>
-                    <label className="block font-medium">Serveurs associés</label>
-                    <select
-                        multiple
-                        value={data.server_ids}
-                        onChange={(e) => {
-                            const selectedValues = Array.from(
-                                e.target.selectedOptions,
-                                (option) => Number(option.value)
-                            );
-                            setData('server_ids', selectedValues);
-                        }}
-                        className="w-full border p-2 rounded"
-                    >
-                        {servers.map((server) => (
-                            <option key={server.id} value={server.id}>
-                                {server.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* GPU Architecture */}
-                <div>
-                    <label className="block font-medium">Architecture GPU</label>
-                    <input
-                        type="text"
-                        value={data.gpu_architecture}
-                        onChange={(e) => setData('gpu_architecture', e.target.value)}
-                        className="w-full border p-2 rounded"
-                    />
-                </div>
-
-                {/* Memory Type */}
-                <div>
-                    <label className="block font-medium">Type de mémoire</label>
-                    <input
-                        type="text"
-                        value={data.memory_type}
-                        onChange={(e) => setData('memory_type', e.target.value)}
-                        className="w-full border p-2 rounded"
-                    />
-                </div>
-
-                {/* Power Rating */}
-                <div>
-                    <label className="block font-medium">Consommation (W)</label>
-                    <input
-                        type="number"
-                        value={data.power_rating}
-                        onChange={(e) => setData('power_rating', Number(e.target.value))}
-                        className="w-full border p-2 rounded"
-                    />
-                </div>
-
-                {/* Image Upload */}
-                <div className="mt-4">
-                    <label htmlFor="image" className="block font-medium">Image:</label>
-                    <input
-                        type="file"
-                        name="image"
-                        onChange={handleImageChange}
-                        className="mt-1 p-2 border rounded w-full"
-                    />
-                    {selectedImage && (
-                        <div className="mt-2">
-                            <img src={selectedImage} alt="Prévisualisation" className="w-32 h-32 object-cover rounded" />
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nom</label>
+                            <input
+                                type="text"
+                                name="name"
+                                id="name"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.name && <p className="text-red-600 text-sm">{errors.name}</p>}
                         </div>
-                    )}
-                    {errors.image && <div className="text-red-600 text-sm">{errors.image}</div>}
-                </div>
 
-                {/* Progress Indicator */}
-                {progress && (
-                    <div className="w-full bg-gray-200 rounded">
-                        <div
-                            className="bg-blue-500 text-xs leading-none py-1 text-center text-white"
-                            style={{ width: `${progress.percentage}%` }}
-                        >
-                            {progress.percentage}%
+                        <div>
+                            <label htmlFor="price" className="block text-sm font-medium text-gray-700">Prix</label>
+                            <input
+                                type="number"
+                                name="price"
+                                id="price"
+                                value={data.price}
+                                onChange={(e) => setData('price', Number(e.target.value))}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.price && <p className="text-red-600 text-sm">{errors.price}</p>}
                         </div>
                     </div>
-                )}
 
-                {/* Buttons */}
-                <div className="flex space-x-4">
-                    <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
-                        Modifier Carte Graphique
-                    </button>
-                    <Link href="/graphic-cards" className="bg-gray-500 text-white px-4 py-2 rounded">
-                        Retour à la liste
-                    </Link>
-                </div>
-            </form>
-        </AuthenticatedLayout>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label htmlFor="brand_id" className="block text-sm font-medium text-gray-700">Marque</label>
+                            <select
+                                name="brand_id"
+                                id="brand_id"
+                                value={data.brand_id}
+                                onChange={(e) => setData('brand_id', Number(e.target.value))}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            >
+                                <option value={0} disabled>Sélectionner une Marque</option>
+                                {brands.map((brand) => (
+                                    <option key={brand.id} value={brand.id}>{brand.name}</option>
+                                ))}
+                            </select>
+                            {errors.brand_id && <p className="text-red-600 text-sm">{errors.brand_id}</p>}
+                        </div>
+
+                        <div>
+                            <label htmlFor="gpu_architecture" className="block text-sm font-medium text-gray-700">Architecture GPU</label>
+                            <input
+                                type="text"
+                                name="gpu_architecture"
+                                id="gpu_architecture"
+                                value={data.gpu_architecture}
+                                onChange={(e) => setData('gpu_architecture', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.gpu_architecture && <p className="text-red-600 text-sm">{errors.gpu_architecture}</p>}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label htmlFor="memory_type" className="block text-sm font-medium text-gray-700">Type de mémoire</label>
+                            <input
+                                type="text"
+                                name="memory_type"
+                                id="memory_type"
+                                value={data.memory_type}
+                                onChange={(e) => setData('memory_type', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.memory_type && <p className="text-red-600 text-sm">{errors.memory_type}</p>}
+                        </div>
+
+                        <div>
+                            <label htmlFor="power_rating" className="block text-sm font-medium text-gray-700">Consommation (W)</label>
+                            <input
+                                type="number"
+                                name="power_rating"
+                                id="power_rating"
+                                value={data.power_rating}
+                                onChange={(e) => setData('power_rating', Number(e.target.value))}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.power_rating && <p className="text-red-600 text-sm">{errors.power_rating}</p>}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label htmlFor="server_ids" className="block text-sm font-medium text-gray-700">Serveurs Associés</label>
+                        <select
+                            name="server_ids"
+                            id="server_ids"
+                            multiple
+                            value={data.server_ids}
+                            onChange={(e) => {
+                                const selectedValues = Array.from(e.target.selectedOptions, (option) => Number(option.value));
+                                setData('server_ids', selectedValues);
+                            }}
+                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        >
+                            {servers.map((server) => (
+                                <option key={server.id} value={server.id}>{server.name}</option>
+                            ))}
+                        </select>
+                        {errors.server_ids && <p className="text-red-600 text-sm">{errors.server_ids}</p>}
+                    </div>
+
+                    <div>
+                        <label htmlFor="image" className="block text-sm font-medium text-gray-700">Image</label>
+                        <div className="mt-1 flex items-center">
+                            <label htmlFor="image" className="flex justify-center items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md cursor-pointer hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+                                Choisir un fichier
+                            </label>
+                            <input
+                                type="file"
+                                name="image"
+                                id="image"
+                                onChange={handleImageChange}
+                                className="hidden"
+                            />
+                            {selectedImage && (
+                                <div className="ml-2">
+                                    <img
+                                        src={selectedImage}
+                                        alt="Image de la carte graphique"
+                                        className="w-32 h-32 object-cover rounded"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        {errors.image && <p className="text-red-600 text-sm">{errors.image}</p>}
+                    </div>
+
+                    {progress && (
+                        <div className="w-full bg-gray-200 rounded">
+                            <div
+                                className="bg-blue-500 text-xs leading-none py-1 text-center text-white"
+                                style={{ width: `${progress.percentage}%` }}
+                            >
+                                {progress.percentage}%
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex items-center justify-end space-x-4">
+                        <button
+                            type="submit"
+                            className="text-green-900 hover:text-white border border-green-800 hover:bg-green-900 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-600 dark:text-green-400 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800"
+                        >
+                            Modifier Carte Graphique
+                        </button>
+                        <Link href="/graphic-cards" className="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+                            Retour à la liste
+                        </Link>
+                    </div>
+                </form>
+            </div>
+        </Layout>
     );
 }

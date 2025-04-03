@@ -26,6 +26,8 @@ return new class extends Migration
             $table->foreignId('graphic_card_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('fiber_optic_card_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('expansion_card_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('cable_connector_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('battery_id')->nullable()->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

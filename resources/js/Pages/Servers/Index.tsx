@@ -1,260 +1,136 @@
-import { InertiaLink } from '@inertiajs/inertia-react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Link } from '@inertiajs/react';
-import { Inertia } from '@inertiajs/inertia';
-interface ComponentData {
-    ram_name?: string;
-    ram_capacity?: number;
-    hard_drive_name?: string;
-    hard_drive_capacity?: number;
-    processor_name?: string;
-    processor_speed?: number;
-    power_supply_name?: string;
-    power_supply_capacity?: number;
-    motherboard_name?: string;
-    motherboard_model?: string;
-    network_card_name?: string;
-    network_card_speed?: string;
-    raid_controller_name?: string;
-    raid_controller_type?: string;
-    cooling_solution_name?: string;
-    cooling_solution_type?: string;
-    chassis_name?: string;
-    chassis_type?: string;
-    graphic_card_name?: string;
-    graphic_card_memory?: number;
-    fiber_optic_card_name?: string;
-    fiber_optic_card_speed?: string;
-    expansion_card_name?: string;
-    expansion_card_type?: string;
-  }
-  
-  interface ServerData {
-    id: number; // L'ID du serveur
-    server_name: string;
-    brand: string;
-    image: string | null;
-    model: string;
+import { Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
+import { Layout } from '@/Layouts/layout';
+
+
+
+interface ServerData {
+  id: number;
+  server_name: string;
+  brand: string;
+  image: string | null;
+  model: string;
   cpu_socket: string;
+  price: number;
   ram_slots: number;
   storage_slots: number;
   power_supply_type: string;
   rack_mountable: boolean;
   form_factor: string;
-    rams: ComponentData[];
-    hardDrives: ComponentData[];
-    processors: ComponentData[];
-    powerSupplies: ComponentData[];
-    motherboards: ComponentData[];
-    networkCards: ComponentData[];
-    raidControllers: ComponentData[];
-    coolingSolutions: ComponentData[];
-    chassis: ComponentData[];
-    graphicCards: ComponentData[];
-    fiberOpticCards: ComponentData[];
-    expansionCards: ComponentData[];
-  }
   
-  interface Props {
-    data: ServerData[];
-  }
-  
-  const ServersIndex = ({ data }: Props) => {
-    const handleDelete = (serverId: number) => {
-      if (confirm("Êtes-vous sûr de vouloir supprimer ce serveur ?")) {
-        // Utilisation d'Inertia.delete pour supprimer le serveur
-        Inertia.delete(`/servers/${serverId}`);
-      }
-    };
-  return (
-    <AuthenticatedLayout
-                header={
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                        Rams
-                    </h2>
-                }
-            >
-      <h1>Liste des serveurs et composants</h1>
-      <Link href="/servers/create" className="btn btn-primary">Ajouter Server</Link>
-      {data.map((server, index) => (
-        <div key={index}>
-           {server.image ? (
-            <div>
-              <img src={`/storage/${server.image.url}`}  width="50" className="ml-2" />
-            </div>
-          ) : (
-            <div>
-              <p>{server.image}.</p>
-            </div>
-          )}
+}
 
+interface Props {
+  data: ServerData[];
+}
 
-          <h3>Serveur: {server.server_name}</h3>
-          <p>Marque: {server.brand}</p>
-          <p>Modèle: {server.model}</p>
-          <p>Socket CPU: {server.cpu_socket}</p>
-          <p>Slots RAM: {server.ram_slots}</p>
-          <p>Slots de stockage: {server.storage_slots}</p>
-          <p>Type d'alimentation: {server.power_supply_type}</p>
-          <p>Montage en rack: {server.rack_mountable ? 'Oui' : 'Non'}</p>
-          <p>Form Factor: {server.form_factor}</p>
+export default function Index({ data }: Props) {
+  const { delete: destroy } = useForm();
+  const [searchTerm, setSearchTerm] = useState("");
 
-          {/* Affichage des RAMs seulement si elles existent */}
-          {server.rams.length > 0 && (
-            <>
-              <h4>RAMs:</h4>
-              {server.rams.map((ram, idx) => (
-                <div key={idx}>
-                  <p>{ram.ram_name} - {ram.ram_capacity} Go</p>
-                </div>
-              ))}
-            </>
-          )}
+  const handleDelete = (id: number) => {
+    if (confirm("Voulez-vous vraiment supprimer ce serveur ?")) {
+      destroy(`/servers/${id}`);
+    }
+  };
 
-          {/* Affichage des disques durs seulement s'ils existent */}
-          {server.hardDrives.length > 0 && (
-            <>
-              <h4>Disques Durs:</h4>
-              {server.hardDrives.map((hardDrive, idx) => (
-                <div key={idx}>
-                  <p>{hardDrive.hard_drive_name} - {hardDrive.hard_drive_capacity} Go</p>
-                </div>
-              ))}
-            </>
-          )}
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value.toLowerCase());
+  };
 
-          {/* Affichage des processeurs seulement s'ils existent */}
-          {server.processors.length > 0 && (
-            <>
-              <h4>Processeurs:</h4>
-              {server.processors.map((processor, idx) => (
-                <div key={idx}>
-                  <p>{processor.processor_name} - {processor.processor_speed} GHz</p>
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Affichage des alimentations seulement s'elles existent */}
-          {server.powerSupplies.length > 0 && (
-            <>
-              <h4>Alimentations:</h4>
-              {server.powerSupplies.map((powerSupply, idx) => (
-                <div key={idx}>
-                  <p>{powerSupply.power_supply_name} - {powerSupply.power_supply_capacity} W</p>
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Affichage des cartes mères seulement si elles existent */}
-          {server.motherboards.length > 0 && (
-            <>
-              <h4>Cartes Mères:</h4>
-              {server.motherboards.map((motherboard, idx) => (
-                <div key={idx}>
-                  <p>{motherboard.motherboard_name} - {motherboard.motherboard_model}</p>
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Affichage des cartes réseau seulement si elles existent */}
-          {server.networkCards.length > 0 && (
-            <>
-              <h4>Cartes Réseau:</h4>
-              {server.networkCards.map((networkCard, idx) => (
-                <div key={idx}>
-                  <p>{networkCard.network_card_name} - {networkCard.network_card_speed}</p>
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Affichage des contrôleurs RAID seulement s'ils existent */}
-          {server.raidControllers.length > 0 && (
-            <>
-              <h4>Contrôleurs RAID:</h4>
-              {server.raidControllers.map((raidController, idx) => (
-                <div key={idx}>
-                  <p>{raidController.raid_controller_name} - {raidController.raid_controller_type}</p>
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Affichage des solutions de refroidissement seulement si elles existent */}
-          {server.coolingSolutions.length > 0 && (
-            <>
-              <h4>Solutions de Refroidissement:</h4>
-              {server.coolingSolutions.map((coolingSolution, idx) => (
-                <div key={idx}>
-                  <p>{coolingSolution.cooling_solution_name} - {coolingSolution.cooling_solution_type}</p>
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Affichage des châssis seulement s'ils existent */}
-          {server.chassis.length > 0 && (
-            <>
-              <h4>Châssis:</h4>
-              {server.chassis.map((chassis, idx) => (
-                <div key={idx}>
-                  <p>{chassis.chassis_name} - {chassis.chassis_type}</p>
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Affichage des cartes graphiques seulement si elles existent */}
-          {server.graphicCards.length > 0 && (
-            <>
-              <h4>Cartes Graphiques:</h4>
-              {server.graphicCards.map((graphicCard, idx) => (
-                <div key={idx}>
-                  <p>{graphicCard.graphic_card_name} - {graphicCard.graphic_card_memory} Go</p>
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Affichage des cartes optiques seulement si elles existent */}
-          {server.fiberOpticCards.length > 0 && (
-            <>
-              <h4>Cartes Optiques:</h4>
-              {server.fiberOpticCards.map((fiberOpticCard, idx) => (
-                <div key={idx}>
-                  <p>{fiberOpticCard.fiber_optic_card_name} - {fiberOpticCard.fiber_optic_card_speed}</p>
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Affichage des cartes d'extension seulement si elles existent */}
-          {server.expansionCards.length > 0 && (
-            <>
-              <h4>Cartes d'Extension:</h4>
-              {server.expansionCards.map((expansionCard, idx) => (
-                <div key={idx}>
-                  <p>{expansionCard.expansion_card_name} - {expansionCard.expansion_card_type}</p>
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Liens pour modifier, voir et supprimer le serveur */}
-          <div className="action-buttons">
-            <InertiaLink href={`/servers/${server.id}`} className="btn btn-info">Voir</InertiaLink>
-            <InertiaLink href={`/servers/${server.id}/edit`} className="btn btn-warning">Modifier</InertiaLink>
-            <button onClick={() => handleDelete(server.id)} className="btn btn-danger">Supprimer</button>
-          </div>
-
-          <hr />
-        </div>
-      ))}
-    </AuthenticatedLayout>
+  const filteredServers = data.filter(server =>
+    server.server_name.toLowerCase().includes(searchTerm)
   );
-};
 
-export default ServersIndex;
+  return (
+    <Layout>
+      <h1 className="text-3xl font-semibold text-gray-800 mb-4 p-2">Liste des Serveurs</h1>
+      <div className="flex justify-between items-start mb-4">
+        <Link
+          href="/servers/create"
+          className="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800"
+        >
+          Ajouter un Serveur
+        </Link>
+        <input
+          type="text"
+          className="px-4 py-2 border rounded-lg w-1/3"
+          placeholder="Rechercher par nom..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
+      </div>
+
+      <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+              <th scope="col" className="px-6 py-3">Nom du Serveur</th>
+              <th scope="col" className="px-6 py-3">Marque</th>
+              <th scope="col" className="px-6 py-3">Modèle</th>
+              <th scope="col" className="px-6 py-3">Détails</th>
+              <th scope="col" className="px-6 py-3">Prix</th>
+              <th scope="col" className="px-6 py-3">Image</th>
+              <th scope="col" className="px-6 py-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredServers.length > 0 ? (
+              filteredServers.map((server) => (
+                <tr key={server.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
+                  <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    {server.server_name}
+                  </td>
+                  <td className="px-6 py-4">{server.brand}</td>
+                  <td className="px-6 py-4">{server.model}</td>
+                  <td className="px-6 py-4">
+                    <div>
+                      <p><strong>Socket CPU:</strong> {server.cpu_socket}</p>
+                      <p><strong>Slots RAM:</strong> {server.ram_slots}</p>
+                      <p><strong>Slots Stockage:</strong> {server.storage_slots}</p>
+                      <p><strong>Type d'Alimentation:</strong> {server.power_supply_type}</p>
+                      <p><strong>Montage en Rack:</strong> {server.rack_mountable ? 'Oui' : 'Non'}</p>
+                      <p><strong>Form Factor:</strong> {server.form_factor}</p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">{server.price}</td>
+                  <td className="px-6 py-4">
+                    {server.image ? (
+                      <img
+                        src={`/storage/${server.image.url}`}
+                        alt={server.server_name}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    ) : (
+                      <span>Aucune image</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex space-x-2">
+                      <Link href={`/servers/${server.id}/edit`} className="font-medium text-green-600 dark:text-green-500 hover:underline">
+                        Modifier
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(server.id)}
+                        className="font-medium text-red-600 dark:text-red-500 hover:underline"
+                      >
+                        Supprimer
+                      </button>
+                      <Link href={`/servers/${server.id}`} className="font-medium text-blue-600 dark:text-blue-500 hover:underline">
+                        Voir
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">Aucun serveur trouvé</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </Layout>
+  );
+}

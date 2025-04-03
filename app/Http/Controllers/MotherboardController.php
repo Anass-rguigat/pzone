@@ -9,22 +9,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
-class MotherboardController extends Controller {
-    public function index() {
+class MotherboardController extends Controller
+{
+    public function index()
+    {
         $motherboards = Motherboard::with(['brand', 'image', 'servers'])->get(); // Load servers as well
         return Inertia::render('Motherboards/Index', ['motherboards' => $motherboards]);
     }
 
-    public function create() {
+    public function create()
+    {
         $brands = \App\Models\Brand::all();
-        $servers = \App\Models\Server::all(); // Get all Servers to attach
+        $servers = \App\Models\Server::all();
         return Inertia::render('Motherboards/Create', [
             'brands' => $brands,
-            'servers' => $servers, // Pass servers to the view
+            'servers' => $servers,
         ]);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'brand_id' => 'required|exists:brands,id',
@@ -35,12 +39,12 @@ class MotherboardController extends Controller {
             'price' => 'nullable|numeric|min:0',
             'pci_slots' => 'required|integer|min:1',
             'form_factor' => 'required|string|max:255',
-            'server_ids' => 'nullable|array', // Accept an array of Server IDs
-            'server_ids.*' => 'exists:servers,id', // Ensure all Server IDs are valid
+            'server_ids' => 'nullable|array',
+            'server_ids.*' => 'exists:servers,id',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Create the Motherboard record
+
         $motherboard = Motherboard::create([
             'name' => $validated['name'],
             'brand_id' => $validated['brand_id'],
@@ -53,12 +57,10 @@ class MotherboardController extends Controller {
             'form_factor' => $validated['form_factor'],
         ]);
 
-        // Attach the servers if provided
         if (isset($validated['server_ids']) && count($validated['server_ids']) > 0) {
             $motherboard->servers()->attach($validated['server_ids']);
         }
 
-        // Handle the image upload
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('motherboards', 'public');
             $motherboard->image()->create(['url' => $path]);
@@ -67,10 +69,11 @@ class MotherboardController extends Controller {
         return redirect()->route('motherboards.index');
     }
 
-    public function edit(Motherboard $motherboard) {
+    public function edit(Motherboard $motherboard)
+    {
         $brands = \App\Models\Brand::all();
         $servers = \App\Models\Server::all();
-        $motherboard->load('brand', 'image', 'servers'); // Load all related data
+        $motherboard->load('brand', 'image', 'servers');
         return Inertia::render('Motherboards/Edit', [
             'motherboard' => $motherboard,
             'brands' => $brands,
@@ -78,9 +81,10 @@ class MotherboardController extends Controller {
         ]);
     }
 
-    // Update Motherboard
-    public function update(Request $request, Motherboard $motherboard) {
-        // Validate the incoming request data
+
+    public function update(Request $request, Motherboard $motherboard)
+    {
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'brand_id' => 'required|exists:brands,id',
@@ -93,10 +97,9 @@ class MotherboardController extends Controller {
             'form_factor' => 'nullable|string|max:255',
             'server_ids' => 'nullable|array',
             'server_ids.*' => 'exists:servers,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Only validate image if provided
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Update the Motherboard model with the validated data
         $motherboard->update([
             'name' => $validated['name'],
             'brand_id' => $validated['brand_id'],
@@ -109,53 +112,43 @@ class MotherboardController extends Controller {
             'form_factor' => $validated['form_factor'] ?? $motherboard->form_factor,
         ]);
 
-        // Sync the servers if any server_ids are provided
+
         if (isset($validated['server_ids'])) {
             $motherboard->servers()->sync($validated['server_ids']);
         }
 
-        // Check if a new image is uploaded
         if ($request->hasFile('image')) {
-            // Delete the old image if it exists
             if ($motherboard->image) {
-                // Delete the old image from the storage
                 Storage::disk('public')->delete($motherboard->image->url);
-                // Delete the old image record
                 $motherboard->image()->delete();
             }
 
-            // Store the new image
             $path = $request->file('image')->store('motherboards', 'public');
 
-            // Create a new image record associated with the Motherboard
             $motherboard->image()->create(['url' => $path]);
         }
 
-        // Redirect back to the Motherboard index or show the updated Motherboard
         return redirect()->route('motherboards.index');
     }
 
-    public function show(Motherboard $motherboard) {
-        // Load the related brand, image, and servers
+    public function show(Motherboard $motherboard)
+    {
         $motherboard->load('brand', 'image', 'servers');
 
-        // Pass the Motherboard data to the Inertia view
         return Inertia::render('Motherboards/Show', [
             'motherboard' => $motherboard,
         ]);
     }
 
-    public function destroy(Motherboard $motherboard) {
-        // Delete the related image if it exists
+    public function destroy(Motherboard $motherboard)
+    {
         if ($motherboard->image) {
             Storage::disk('public')->delete($motherboard->image->url);
             $motherboard->image()->delete();
         }
 
-        // Detach servers if any are attached
         $motherboard->servers()->detach();
 
-        // Delete the Motherboard
         $motherboard->delete();
 
         return redirect()->route('motherboards.index');

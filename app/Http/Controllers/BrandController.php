@@ -30,11 +30,6 @@ class BrandController extends Controller
         return redirect()->route('brands.index')->with('success', 'Brand created successfully.');
     }
 
-    public function show(Brand $brand)
-    {
-        return Inertia::render('Brands/Show', ['brand' => $brand]);
-    }
-
     public function edit(Brand $brand)
     {
         return Inertia::render('Brands/Edit', ['brand' => $brand]);

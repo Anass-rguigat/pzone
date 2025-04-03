@@ -9,22 +9,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
-class ProcessorController extends Controller {
-    public function index() {
+class ProcessorController extends Controller
+{
+    public function index()
+    {
         $processors = Processor::with(['brand', 'image', 'servers'])->get(); // Load servers as well
         return Inertia::render('Processors/Index', ['processors' => $processors]);
     }
 
-    public function create() {
+    public function create()
+    {
         $brands = \App\Models\Brand::all();
-        $servers = \App\Models\Server::all(); // Get all Servers to attach
+        $servers = \App\Models\Server::all();
         return Inertia::render('Processors/Create', [
             'brands' => $brands,
-            'servers' => $servers, // Pass servers to the view
+            'servers' => $servers,
         ]);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'brand_id' => 'required|exists:brands,id',
@@ -36,12 +40,12 @@ class ProcessorController extends Controller {
             'boost_clock' => 'required|numeric|min:0',
             'socket' => 'required|string|max:255',
             'thermal_design_power' => 'required|integer|min:0',
-            'server_ids' => 'nullable|array', // Accept an array of Server IDs
-            'server_ids.*' => 'exists:servers,id', // Ensure all Server IDs are valid
+            'server_ids' => 'nullable|array',
+            'server_ids.*' => 'exists:servers,id',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Create the Processor record
+
         $processor = Processor::create([
             'name' => $validated['name'],
             'brand_id' => $validated['brand_id'],
@@ -55,12 +59,10 @@ class ProcessorController extends Controller {
             'thermal_design_power' => $validated['thermal_design_power'],
         ]);
 
-        // Attach the servers if provided
         if (isset($validated['server_ids']) && count($validated['server_ids']) > 0) {
             $processor->servers()->attach($validated['server_ids']);
         }
 
-        // Handle the image upload
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('processors', 'public');
             $processor->image()->create(['url' => $path]);
@@ -69,10 +71,11 @@ class ProcessorController extends Controller {
         return redirect()->route('processors.index');
     }
 
-    public function edit(Processor $processor) {
+    public function edit(Processor $processor)
+    {
         $brands = \App\Models\Brand::all();
         $servers = \App\Models\Server::all();
-        $processor->load('brand', 'image', 'servers'); // Load all related data
+        $processor->load('brand', 'image', 'servers');
         return Inertia::render('Processors/Edit', [
             'processor' => $processor,
             'brands' => $brands,
@@ -80,9 +83,8 @@ class ProcessorController extends Controller {
         ]);
     }
 
-    // Update Processor
-    public function update(Request $request, Processor $processor) {
-        // Validate the incoming request data
+    public function update(Request $request, Processor $processor)
+    {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'brand_id' => 'required|exists:brands,id',
@@ -96,10 +98,9 @@ class ProcessorController extends Controller {
             'thermal_design_power' => 'nullable|integer|min:0',
             'server_ids' => 'nullable|array',
             'server_ids.*' => 'exists:servers,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Only validate image if provided
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Update the Processor model with the validated data
         $processor->update([
             'name' => $validated['name'],
             'brand_id' => $validated['brand_id'],
@@ -113,53 +114,42 @@ class ProcessorController extends Controller {
             'thermal_design_power' => $validated['thermal_design_power'] ?? $processor->thermal_design_power,
         ]);
 
-        // Sync the servers if any server_ids are provided
         if (isset($validated['server_ids'])) {
             $processor->servers()->sync($validated['server_ids']);
         }
 
-        // Check if a new image is uploaded
         if ($request->hasFile('image')) {
-            // Delete the old image if it exists
             if ($processor->image) {
-                // Delete the old image from the storage
                 Storage::disk('public')->delete($processor->image->url);
-                // Delete the old image record
                 $processor->image()->delete();
             }
 
-            // Store the new image
             $path = $request->file('image')->store('processors', 'public');
 
-            // Create a new image record associated with the Processor
             $processor->image()->create(['url' => $path]);
         }
 
-        // Redirect back to the Processor index or show the updated Processor
         return redirect()->route('processors.index');
     }
 
-    public function show(Processor $processor) {
-        // Load the related brand, image, and servers
+    public function show(Processor $processor)
+    {
         $processor->load('brand', 'image', 'servers');
 
-        // Pass the Processor data to the Inertia view
         return Inertia::render('Processors/Show', [
             'processor' => $processor,
         ]);
     }
 
-    public function destroy(Processor $processor) {
-        // Delete the related image if it exists
+    public function destroy(Processor $processor)
+    {
         if ($processor->image) {
             Storage::disk('public')->delete($processor->image->url);
             $processor->image()->delete();
         }
 
-        // Detach servers if any are attached
         $processor->servers()->detach();
 
-        // Delete the Processor
         $processor->delete();
 
         return redirect()->route('processors.index');

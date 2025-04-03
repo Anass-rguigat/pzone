@@ -12,6 +12,9 @@ export default defineConfig({
         react(),
     ],
     resolve: {
+        alias: {
+            '@': path.resolve(__dirname, 'resources/js'), // This resolves @ to resources/js
+        },
         extensions: ['.tsx', '.ts', '.jsx', '.js'], // Add .jsx here
       },
 });

@@ -1,6 +1,5 @@
-import { useForm } from '@inertiajs/react';
-import { useState } from 'react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Link, useForm } from '@inertiajs/react';
+import { Layout } from '@/Layouts/layout';
 
 interface Brand {
     id: number;
@@ -28,161 +27,139 @@ export default function Create({ brands, servers }: Props) {
         price: ''
     });
 
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setData(name, value);
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const file = e.target.files[0];
-            setSelectedImage(URL.createObjectURL(file)); // Display the selected image
-            setData('image', file);
-        }
-    };
-
-    const handleServerSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedValues = Array.from(e.target.selectedOptions, (option) => option.value);
-        setData('server_ids', selectedValues.map(Number)); // Convert to numbers
-    };
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/raid-controllers', {
-            onSuccess: () => {
-                // Reset form and selected image upon success
-                setData({
-                    name: '',
-                    brand_id: '',
-                    model: '',
-                    supported_levels: '',
-                    server_ids: [],
-                    image: null,
-                    price: ''
-                });
-                setSelectedImage(null);
-            },
-        });
+        post('/raid-controllers');
     };
 
     return (
-        <AuthenticatedLayout
-            header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                    Dashboard
-                </h2>
-            }
-        >
-            <h1>Ajouter un contrôleur RAID</h1>
-            <form onSubmit={handleSubmit} encType="multipart/form-data">
-                <div>
-                    <label htmlFor="name">Nom du contrôleur RAID:</label>
-                    <input
-                        type="text"
-                        name="name"
-                        value={data.name}
-                        onChange={handleChange}
-                        className="mt-1 p-2 border rounded"
-                    />
-                    {errors.name && <div className="text-red-600 text-sm">{errors.name}</div>}
-                </div>
+        <Layout>
+            <div className="px-4 py-6 sm:px-6">
+                <h1 className="text-2xl font-semibold mb-6">Ajouter un Nouveau Contrôleur RAID</h1>
 
-                <div className="mt-4">
-                    <label htmlFor="brand_id">Marque:</label>
-                    <select
-                        name="brand_id"
-                        value={data.brand_id}
-                        onChange={handleChange}
-                        className="mt-1 p-2 border rounded"
-                    >
-                        <option value="">Sélectionner une marque</option>
-                        {brands.map((brand) => (
-                            <option key={brand.id} value={brand.id}>
-                                {brand.name}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.brand_id && <div className="text-red-600 text-sm">{errors.brand_id}</div>}
-                </div>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nom</label>
+                            <input
+                                type="text"
+                                name="name"
+                                id="name"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.name && <p className="text-red-600 text-sm">{errors.name}</p>}
+                        </div>
 
-                <div className="mt-4">
-                    <label htmlFor="model">Modèle:</label>
-                    <input
-                        type="text"
-                        name="model"
-                        value={data.model}
-                        onChange={handleChange}
-                        className="mt-1 p-2 border rounded"
-                    />
-                    {errors.model && <div className="text-red-600 text-sm">{errors.model}</div>}
-                </div>
+                        <div>
+                            <label htmlFor="brand_id" className="block text-sm font-medium text-gray-700">Marque</label>
+                            <select
+                                name="brand_id"
+                                id="brand_id"
+                                value={data.brand_id}
+                                onChange={(e) => setData('brand_id', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            >
+                                <option value="">Sélectionner une Marque</option>
+                                {brands.map((brand) => (
+                                    <option key={brand.id} value={brand.id}>{brand.name}</option>
+                                ))}
+                            </select>
+                            {errors.brand_id && <p className="text-red-600 text-sm">{errors.brand_id}</p>}
+                        </div>
+                    </div>
 
-                <div className="mt-4">
-                    <label htmlFor="supported_levels">Niveaux supportés:</label>
-                    <input
-                        type="text"
-                        name="supported_levels"
-                        value={data.supported_levels}
-                        onChange={handleChange}
-                        className="mt-1 p-2 border rounded"
-                    />
-                    {errors.supported_levels && <div className="text-red-600 text-sm">{errors.supported_levels}</div>}
-                </div>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label htmlFor="model" className="block text-sm font-medium text-gray-700">Modèle</label>
+                            <input
+                                type="text"
+                                name="model"
+                                id="model"
+                                value={data.model}
+                                onChange={(e) => setData('model', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.model && <p className="text-red-600 text-sm">{errors.model}</p>}
+                        </div>
 
-                <div className="mt-4">
-                    <label htmlFor="price">Prix:</label>
-                    <input
-                        type="number"
-                        name="price"
-                        value={data.price}
-                        onChange={handleChange}
-                        className="mt-1 p-2 border rounded"
-                    />
-                    {errors.price && <div className="text-red-600 text-sm">{errors.price}</div>}
-                </div>
-                
-                <div className="mt-4">
-                    <label htmlFor="image">Image:</label>
-                    <input
-                        type="file"
-                        name="image"
-                        onChange={handleFileChange}
-                        className="mt-1 p-2 border rounded"
-                    />
-                    {selectedImage && <img src={selectedImage} alt="Preview" className="mt-2" width="150" />}
-                    {errors.image && <div className="text-red-600 text-sm">{errors.image}</div>}
-                </div>
+                        <div>
+                            <label htmlFor="supported_levels" className="block text-sm font-medium text-gray-700">Niveaux supportés</label>
+                            <input
+                                type="text"
+                                name="supported_levels"
+                                id="supported_levels"
+                                value={data.supported_levels}
+                                onChange={(e) => setData('supported_levels', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.supported_levels && <p className="text-red-600 text-sm">{errors.supported_levels}</p>}
+                        </div>
+                    </div>
 
-                <div className="mt-4">
-                    <label htmlFor="servers">Serveurs associés:</label>
-                    <select
-                        name="server_ids"
-                        multiple
-                        value={data.server_ids}
-                        onChange={handleServerSelection}
-                        className="mt-1 p-2 border rounded"
-                    >
-                        {servers.map((server) => (
-                            <option key={server.id} value={server.id}>
-                                {server.name}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.server_ids && <div className="text-red-600 text-sm">{errors.server_ids}</div>}
-                </div>
+                    <div>
+                        <label htmlFor="price" className="block text-sm font-medium text-gray-700">Prix</label>
+                        <input
+                            type="number"
+                            name="price"
+                            id="price"
+                            value={data.price}
+                            onChange={(e) => setData('price', e.target.value)}
+                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        />
+                        {errors.price && <p className="text-red-600 text-sm">{errors.price}</p>}
+                    </div>
 
-                <div className="mt-4">
-                    <button
-                        type="submit"
-                        disabled={processing}
-                        className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-                    >
-                        {processing ? 'Enregistrement...' : 'Ajouter le contrôleur RAID'}
-                    </button>
-                </div>
-            </form>
-        </AuthenticatedLayout>
+                    <div>
+                        <label htmlFor="image" className="block text-sm font-medium text-gray-700">Image</label>
+                        <div className="mt-1 flex items-center">
+                            <label htmlFor="image" className="flex justify-center items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md cursor-pointer hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+                                Choisir un fichier
+                            </label>
+                            <input
+                                type="file"
+                                name="image"
+                                id="image"
+                                onChange={(e) => setData('image', e.target.files ? e.target.files[0] : null)}
+                                className="hidden"
+                            />
+                            {data.image && <p className="ml-2 text-sm text-gray-500">{data.image.name}</p>}
+                        </div>
+                        {errors.image && <p className="text-red-600 text-sm">{errors.image}</p>}
+                    </div>
+
+                    <div>
+                        <label htmlFor="server_ids" className="block text-sm font-medium text-gray-700">Serveurs Associés</label>
+                        <select
+                            name="server_ids"
+                            id="server_ids"
+                            multiple
+                            value={data.server_ids}
+                            onChange={(e) => setData('server_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        >
+                            {servers.map((server) => (
+                                <option key={server.id} value={server.id}>{server.name}</option>
+                            ))}
+                        </select>
+                        {errors.server_ids && <p className="text-red-600 text-sm">{errors.server_ids}</p>}
+                    </div>
+
+                    <div className="flex items-center justify-end space-x-4">
+                        <button
+                            type="submit"
+                            className="text-green-900 hover:text-white border border-green-800 hover:bg-green-900 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-600 dark:text-green-400 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800"
+                            disabled={processing}
+                        >
+                            {processing ? 'Enregistrement...' : 'Créer le Contrôleur RAID'}
+                        </button>
+                        <Link href="/raid-controllers" className="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+                            Retour à la liste
+                        </Link>
+                    </div>
+                </form>
+            </div>
+        </Layout>
     );
 }

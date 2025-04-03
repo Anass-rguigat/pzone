@@ -20,6 +20,16 @@ class Discount extends Model
         return $this->belongsToMany(Ram::class, 'discount_component');
     }
 
+    public function batteries()
+    {
+        return $this->belongsToMany(Battery::class, 'discount_component');
+    }
+
+    public function cable_connectors()
+    {
+        return $this->belongsToMany(CableConnector::class, 'discount_component');
+    }
+
     public function hardDrives()
     {
         return $this->belongsToMany(HardDrive::class, 'discount_component');

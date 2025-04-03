@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Inertia } from '@inertiajs/inertia';
+import { Link } from '@inertiajs/inertia-react'; 
+import { Layout } from '@/Layouts/layout';
 
 const EditDiscount = ({
     discount,
@@ -14,7 +16,9 @@ const EditDiscount = ({
     chassis,
     graphic_cards,
     fiber_optic_cards,
-    expansion_cards
+    expansion_cards,
+    cable_connectors,
+    batteries,
 }: any) => {
     const [formData, setFormData] = useState({
         name: discount.name,
@@ -24,17 +28,19 @@ const EditDiscount = ({
         end_date: discount.end_date,
         selectedComponents: {
             rams: discount.rams ? discount.rams.map((ram: any) => ram.id) : [],
-            hard_drives: discount.hardDrives ? discount.hardDrives.map((hardDrive: any) => hardDrive.id) : [],
+            hard_drives: discount.hard_drives ? discount.hard_drives.map((hardDrive: any) => hardDrive.id) : [],
             processors: discount.processors ? discount.processors.map((processor: any) => processor.id) : [],
-            power_supplies: discount.powerSupplies ? discount.powerSupplies.map((powerSupply: any) => powerSupply.id) : [],
+            power_supplies: discount.power_supplies ? discount.power_supplies.map((powerSupply: any) => powerSupply.id) : [],
             motherboards: discount.motherboards ? discount.motherboards.map((motherboard: any) => motherboard.id) : [],
-            network_cards: discount.networkCards ? discount.networkCards.map((networkCard: any) => networkCard.id) : [],
-            raid_controllers: discount.raidControllers ? discount.raidControllers.map((raidController: any) => raidController.id) : [],
-            cooling_solutions: discount.coolingSolutions ? discount.coolingSolutions.map((coolingSolution: any) => coolingSolution.id) : [],
+            network_cards: discount.network_cards ? discount.network_cards.map((networkCard: any) => networkCard.id) : [],
+            raid_controllers: discount.raid_controllers ? discount.raid_controllers.map((raidController: any) => raidController.id) : [],
+            cooling_solutions: discount.cooling_solutions ? discount.cooling_solutions.map((coolingSolution: any) => coolingSolution.id) : [],
             chassis: discount.chassis ? discount.chassis.map((chassis: any) => chassis.id) : [],
-            graphic_cards: discount.graphicCards ? discount.graphicCards.map((graphicCard: any) => graphicCard.id) : [],
-            fiber_optic_cards: discount.fiberOpticCards ? discount.fiberOpticCards.map((fiberOpticCard: any) => fiberOpticCard.id) : [],
-            expansion_cards: discount.expansionCards ? discount.expansionCards.map((expansionCard: any) => expansionCard.id) : [],
+            graphic_cards: discount.graphic_cards ? discount.graphic_cards.map((graphicCard: any) => graphicCard.id) : [],
+            fiber_optic_cards: discount.fiber_optic_cards ? discount.fiber_optic_cards.map((fiberOpticCard: any) => fiberOpticCard.id) : [],
+            expansion_cards: discount.expansion_cards ? discount.expansion_cards.map((expansionCard: any) => expansionCard.id) : [],
+            batteries: discount.batteries ? discount.batteries.map((battery: any) => battery.id) : [],
+            cable_connectors: discount.cable_connectors ? discount.cable_connectors.map((cable: any) => cable.id) : []
         },
     });
 
@@ -46,18 +52,14 @@ const EditDiscount = ({
         }));
     };
 
-    const handleComponentChange = (e: React.ChangeEvent<HTMLInputElement>, componentType: string) => {
-        const { value, checked } = e.target;
+    const handleComponentChange = (componentType: string, itemId: number) => {
         const updatedComponents = { ...formData.selectedComponents };
         const componentList = updatedComponents[componentType];
 
-        if (checked) {
-            componentList.push(Number(value));
+        if (componentList.includes(itemId)) {
+            updatedComponents[componentType] = componentList.filter((id: number) => id !== itemId);
         } else {
-            const index = componentList.indexOf(Number(value));
-            if (index > -1) {
-                componentList.splice(index, 1);
-            }
+            updatedComponents[componentType] = [...componentList, itemId];
         }
 
         setFormData(prevData => ({
@@ -69,11 +71,10 @@ const EditDiscount = ({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Préparer les composants dans le format attendu par Laravel
         const components = Object.keys(formData.selectedComponents).map((componentType) => {
             return formData.selectedComponents[componentType].map((id: number) => {
-                // Transforme chaque clé (comme "rams") en "ram_id", etc.
-                const key = `${componentType.slice(0, -1)}_id`; // Enlève le "s" pour avoir "ram_id" au lieu de "rams"
+    
+                const key = `${componentType.slice(0, -1)}_id`;
                 return { [key]: id };
             });
         }).flat();
@@ -81,311 +82,159 @@ const EditDiscount = ({
         // Envoi de la mise à jour via PUT
         Inertia.put(route('discountComponents.update', discount.id), {
             ...formData,
-            components: components,  // Envoi du tableau de composants avec tous les composants sélectionnés
+            components: components, 
         });
     };
 
+    const componentGroups = [
+        { name: 'RAM', type: 'rams', items: rams },
+        { name: 'Disques durs', type: 'hard_drives', items: hard_drives },
+        { name: 'Processeurs', type: 'processors', items: processors },
+        { name: 'Alimentations', type: 'power_supplies', items: power_supplies },
+        { name: 'Cartes mères', type: 'motherboards', items: motherboards },
+        { name: 'Cartes réseau', type: 'network_cards', items: network_cards },
+        { name: 'Contrôleurs RAID', type: 'raid_controllers', items: raid_controllers },
+        { name: 'Systèmes de refroidissement', type: 'cooling_solutions', items: cooling_solutions },
+        { name: 'Châssis', type: 'chassis', items: chassis },
+        { name: 'Cartes graphiques', type: 'graphic_cards', items: graphic_cards },
+        { name: 'Cartes fibre optique', type: 'fiber_optic_cards', items: fiber_optic_cards },
+        { name: 'Cartes d\'expansion', type: 'expansion_cards', items: expansion_cards },
+        { name: 'Câbles', type: 'cable_connectors', items: cable_connectors },
+        { name: 'Batteries', type: 'batteries', items: batteries },
+    ];
+
     return (
-        <div>
-            <h1>Edit Discount</h1>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Name:</label>
-                    <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                    />
-                </div>
-                <div>
-                    <label>Discount Type:</label>
-                    <select
-                        name="discount_type"
-                        value={formData.discount_type}
-                        onChange={handleChange}
+        <Layout>
+            <div className="max-w-7xl mx-auto">
+                <div className="flex justify-between items-center mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900">Modifier la remise</h1>
+                    <Link 
+                        href="/discountComponents"
+                        className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg transition-colors"
                     >
-                        <option value="percentage">Percentage</option>
-                        <option value="fixed">Fixed</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Value:</label>
-                    <input
-                        type="number"
-                        name="value"
-                        value={formData.value}
-                        onChange={handleChange}
-                    />
-                </div>
-                <div>
-                    <label>Start Date:</label>
-                    <input
-                        type="date"
-                        name="start_date"
-                        value={formData.start_date}
-                        onChange={handleChange}
-                    />
-                </div>
-                <div>
-                    <label>End Date:</label>
-                    <input
-                        type="date"
-                        name="end_date"
-                        value={formData.end_date}
-                        onChange={handleChange}
-                    />
+                        ← Retour
+                    </Link>
                 </div>
 
-                <div>
-                    <h3>Select Components to Apply Discount</h3>
+                <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Nom de la remise</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                />
+                            </div>
 
-                    {/* RAMs */}
-                    <div>
-                        <h4>RAM</h4>
-                        {rams && rams.length > 0 ? (
-                            rams.map((ram) => (
-                                <div key={ram.id}>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Type de remise</label>
+                                <select
+                                    name="discount_type"
+                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    value={formData.discount_type}
+                                    onChange={handleChange}
+                                >
+                                    <option value="percentage">Pourcentage</option>
+                                    <option value="fixed">Montant fixe</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Valeur</label>
+                                <input
+                                    type="number"
+                                    name="value"
+                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    value={formData.value}
+                                    onChange={handleChange}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
                                     <input
-                                        type="checkbox"
-                                        value={ram.id}
-                                        checked={formData.selectedComponents.rams.includes(ram.id)}
-                                        onChange={(e) => handleComponentChange(e, 'rams')}
+                                        type="date"
+                                        name="start_date"
+                                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        value={formData.start_date}
+                                        onChange={handleChange}
                                     />
-                                    <label>{ram.name}</label>
                                 </div>
-                            ))
-                        ) : (
-                            <p>No RAMs available</p>
-                        )}
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
+                                    <input
+                                        type="date"
+                                        name="end_date"
+                                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        value={formData.end_date}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Hard Drives */}
-                    <div>
-                        <h4>Hard Drives</h4>
-                        {hard_drives && hard_drives.length > 0 ? (
-                            hard_drives.map((hardDrive) => (
-                                <div key={hardDrive.id}>
-                                    <input
-                                        type="checkbox"
-                                        value={hardDrive.id}
-                                        checked={formData.selectedComponents.hard_drives.includes(hardDrive.id)}
-                                        onChange={(e) => handleComponentChange(e, 'hard_drives')}
-                                    />
-                                    <label>{hardDrive.name}</label>
+                    <div className="border-t pt-6">
+                        <h3 className="text-xl font-semibold mb-6">Composants concernés</h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {componentGroups.map((group) => (
+                                <div key={group.type} className="border rounded-lg p-4 bg-gray-50">
+                                    <h4 className="font-medium mb-3">{group.name}</h4>
+                                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                                        {group.items.length === 0 ? (
+                                            <p className="text-gray-500 text-sm">Aucun élément disponible</p>
+                                        ) : (
+                                            group.items.map((item: any) => {
+                                                const isSelected = formData.selectedComponents[group.type].includes(item.id);
+
+                                                return (
+                                                    <label 
+                                                        key={item.id}
+                                                        className={`flex items-center p-2 rounded cursor-pointer ${isSelected ? 'bg-blue-100' : 'hover:bg-gray-200'}`}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isSelected}
+                                                            onChange={() => handleComponentChange(group.type, item.id)}
+                                                            className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                                        />
+                                                        <span className="ml-2 text-sm">{item.name}</span>
+                                                    </label>
+                                                );
+                                            })
+                                        )}
+                                    </div>
                                 </div>
-                            ))
-                        ) : (
-                            <p>No Hard Drives available</p>
-                        )}
+                            ))}
+                        </div>
                     </div>
 
-                    {/* Processors */}
-                    <div>
-                        <h4>Processors</h4>
-                        {processors && processors.length > 0 ? (
-                            processors.map((processor) => (
-                                <div key={processor.id}>
-                                    <input
-                                        type="checkbox"
-                                        value={processor.id}
-                                        checked={formData.selectedComponents.processors.includes(processor.id)}
-                                        onChange={(e) => handleComponentChange(e, 'processors')}
-                                    />
-                                    <label>{processor.name}</label>
-                                </div>
-                            ))
-                        ) : (
-                            <p>No Processors available</p>
-                        )}
+                    <div className="mt-8 flex justify-end">
+                        <button
+                            type="submit"
+                            className="text-green-900 hover:text-white border border-green-800 hover:bg-green-900 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2"
+                        >
+                            {formData.processing ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                        </button>
+                        <Link 
+                            href="/discountComponents"
+                            className="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                        >
+                            Retour à la liste
+                        </Link>
                     </div>
-
-                    {/* Power Supplies */}
-                    <div>
-                        <h4>Power Supplies</h4>
-                        {power_supplies && power_supplies.length > 0 ? (
-                            power_supplies.map((powerSupply) => (
-                                <div key={powerSupply.id}>
-                                    <input
-                                        type="checkbox"
-                                        value={powerSupply.id}
-                                        checked={formData.selectedComponents.power_supplies.includes(powerSupply.id)}
-                                        onChange={(e) => handleComponentChange(e, 'power_supplies')}
-                                    />
-                                    <label>{powerSupply.name}</label>
-                                </div>
-                            ))
-                        ) : (
-                            <p>No Power Supplies available</p>
-                        )}
-                    </div>
-
-                    {/* Motherboards */}
-                    <div>
-                        <h4>Motherboards</h4>
-                        {motherboards && motherboards.length > 0 ? (
-                            motherboards.map((motherboard) => (
-                                <div key={motherboard.id}>
-                                    <input
-                                        type="checkbox"
-                                        value={motherboard.id}
-                                        checked={formData.selectedComponents.motherboards.includes(motherboard.id)}
-                                        onChange={(e) => handleComponentChange(e, 'motherboards')}
-                                    />
-                                    <label>{motherboard.name}</label>
-                                </div>
-                            ))
-                        ) : (
-                            <p>No Motherboards available</p>
-                        )}
-                    </div>
-
-                    {/* Network Cards */}
-                    <div>
-                        <h4>Network Cards</h4>
-                        {network_cards && network_cards.length > 0 ? (
-                            network_cards.map((networkCard) => (
-                                <div key={networkCard.id}>
-                                    <input
-                                        type="checkbox"
-                                        value={networkCard.id}
-                                        checked={formData.selectedComponents.network_cards.includes(networkCard.id)}
-                                        onChange={(e) => handleComponentChange(e, 'network_cards')}
-                                    />
-                                    <label>{networkCard.name}</label>
-                                </div>
-                            ))
-                        ) : (
-                            <p>No Network Cards available</p>
-                        )}
-                    </div>
-
-                    {/* RAID Controllers */}
-                    <div>
-                        <h4>RAID Controllers</h4>
-                        {raid_controllers && raid_controllers.length > 0 ? (
-                            raid_controllers.map((raidController) => (
-                                <div key={raidController.id}>
-                                    <input
-                                        type="checkbox"
-                                        value={raidController.id}
-                                        checked={formData.selectedComponents.raid_controllers.includes(raidController.id)}
-                                        onChange={(e) => handleComponentChange(e, 'raid_controllers')}
-                                    />
-                                    <label>{raidController.name}</label>
-                                </div>
-                            ))
-                        ) : (
-                            <p>No RAID Controllers available</p>
-                        )}
-                    </div>
-
-                    {/* Cooling Solutions */}
-                    <div>
-                        <h4>Cooling Solutions</h4>
-                        {cooling_solutions && cooling_solutions.length > 0 ? (
-                            cooling_solutions.map((coolingSolution) => (
-                                <div key={coolingSolution.id}>
-                                    <input
-                                        type="checkbox"
-                                        value={coolingSolution.id}
-                                        checked={formData.selectedComponents.cooling_solutions.includes(coolingSolution.id)}
-                                        onChange={(e) => handleComponentChange(e, 'cooling_solutions')}
-                                    />
-                                    <label>{coolingSolution.name}</label>
-                                </div>
-                            ))
-                        ) : (
-                            <p>No Cooling Solutions available</p>
-                        )}
-                    </div>
-
-                    {/* Chassis */}
-                    <div>
-                        <h4>Chassis</h4>
-                        {chassis && chassis.length > 0 ? (
-                            chassis.map((chassisItem) => (
-                                <div key={chassisItem.id}>
-                                    <input
-                                        type="checkbox"
-                                        value={chassisItem.id}
-                                        checked={formData.selectedComponents.chassis.includes(chassisItem.id)}
-                                        onChange={(e) => handleComponentChange(e, 'chassis')}
-                                    />
-                                    <label>{chassisItem.name}</label>
-                                </div>
-                            ))
-                        ) : (
-                            <p>No Chassis available</p>
-                        )}
-                    </div>
-
-                    {/* Graphic Cards */}
-                    <div>
-                        <h4>Graphic Cards</h4>
-                        {graphic_cards && graphic_cards.length > 0 ? (
-                            graphic_cards.map((graphicCard) => (
-                                <div key={graphicCard.id}>
-                                    <input
-                                        type="checkbox"
-                                        value={graphicCard.id}
-                                        checked={formData.selectedComponents.graphic_cards.includes(graphicCard.id)}
-                                        onChange={(e) => handleComponentChange(e, 'graphic_cards')}
-                                    />
-                                    <label>{graphicCard.name}</label>
-                                </div>
-                            ))
-                        ) : (
-                            <p>No Graphic Cards available</p>
-                        )}
-                    </div>
-
-                    {/* Fiber Optic Cards */}
-                    <div>
-                        <h4>Fiber Optic Cards</h4>
-                        {fiber_optic_cards && fiber_optic_cards.length > 0 ? (
-                            fiber_optic_cards.map((fiberOpticCard) => (
-                                <div key={fiberOpticCard.id}>
-                                    <input
-                                        type="checkbox"
-                                        value={fiberOpticCard.id}
-                                        checked={formData.selectedComponents.fiber_optic_cards.includes(fiberOpticCard.id)}
-                                        onChange={(e) => handleComponentChange(e, 'fiber_optic_cards')}
-                                    />
-                                    <label>{fiberOpticCard.name}</label>
-                                </div>
-                            ))
-                        ) : (
-                            <p>No Fiber Optic Cards available</p>
-                        )}
-                    </div>
-
-                    {/* Expansion Cards */}
-                    <div>
-                        <h4>Expansion Cards</h4>
-                        {expansion_cards && expansion_cards.length > 0 ? (
-                            expansion_cards.map((expansionCard) => (
-                                <div key={expansionCard.id}>
-                                    <input
-                                        type="checkbox"
-                                        value={expansionCard.id}
-                                        checked={formData.selectedComponents.expansion_cards.includes(expansionCard.id)}
-                                        onChange={(e) => handleComponentChange(e, 'expansion_cards')}
-                                    />
-                                    <label>{expansionCard.name}</label>
-                                </div>
-                            ))
-                        ) : (
-                            <p>No Expansion Cards available</p>
-                        )}
-                    </div>
-                </div>
-
-                <div>
-                    <button type="submit">Save Discount</button>
-                </div>
-            </form>
-        </div>
+                </form>
+            </div>
+        </Layout>
     );
 };
 

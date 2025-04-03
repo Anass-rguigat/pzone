@@ -13,6 +13,16 @@ class Brand extends Model
         return $this->hasMany(Ram::class);
     }
 
+    public function cable_connectors()
+    {
+        return $this->hasMany(CableConnector::class);
+    }
+
+    public function batteries()
+    {
+        return $this->hasMany(Battery::class);
+    }
+
     public function servers()
     {
         return $this->hasMany(Server::class);

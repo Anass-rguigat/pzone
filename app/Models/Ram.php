@@ -1,11 +1,13 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
-class Ram extends Model {
+class Ram extends Model
+{
     use HasFactory;
 
     protected $fillable = [
@@ -17,11 +19,24 @@ class Ram extends Model {
         'speed',
     ];
 
-    public function brand() {
+    public function stockMovements()
+    {
+        return $this->morphMany(StockMovement::class, 'component');
+    }
+
+    public function stockLevel()
+    {
+        return $this->morphOne(StockLevel::class, 'component');
+    }
+
+
+    public function brand()
+    {
         return $this->belongsTo(Brand::class);
     }
 
-    public function image(): MorphOne {
+    public function image(): MorphOne
+    {
         return $this->morphOne(Image::class, 'imageable');
     }
 
@@ -35,4 +50,3 @@ class Ram extends Model {
         return $this->belongsToMany(Discount::class, 'discount_component');
     }
 }
-

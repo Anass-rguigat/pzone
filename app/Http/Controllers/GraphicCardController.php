@@ -9,22 +9,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
-class GraphicCardController extends Controller {
-    public function index() {
+class GraphicCardController extends Controller
+{
+    public function index()
+    {
         $graphicCards = GraphicCard::with(['brand', 'image', 'servers'])->get(); // Load related servers
         return Inertia::render('GraphicCards/Index', ['graphicCards' => $graphicCards]);
     }
 
-    public function create() {
+    public function create()
+    {
         $brands = \App\Models\Brand::all();
-        $servers = \App\Models\Server::all(); // Get all Servers to attach
+        $servers = \App\Models\Server::all();
         return Inertia::render('GraphicCards/Create', [
             'brands' => $brands,
-            'servers' => $servers, // Pass servers to the view
+            'servers' => $servers,
         ]);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'brand_id' => 'required|exists:brands,id',
@@ -32,12 +36,12 @@ class GraphicCardController extends Controller {
             'memory_type' => 'required|string|max:255',
             'power_rating' => 'required|numeric|min:0',
             'price' => 'required|numeric|min:0',
-            'server_ids' => 'nullable|array', // Accept an array of Server IDs
-            'server_ids.*' => 'exists:servers,id', // Ensure all Server IDs are valid
+            'server_ids' => 'nullable|array',
+            'server_ids.*' => 'exists:servers,id',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Create the GraphicCard record
+
         $graphicCard = GraphicCard::create([
             'name' => $validated['name'],
             'brand_id' => $validated['brand_id'],
@@ -47,12 +51,9 @@ class GraphicCardController extends Controller {
             'price' => $validated['price'],
         ]);
 
-        // Attach the servers if provided
         if (isset($validated['server_ids']) && count($validated['server_ids']) > 0) {
             $graphicCard->servers()->attach($validated['server_ids']);
         }
-
-        // Handle the image upload
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('graphic_cards', 'public');
             $graphicCard->image()->create(['url' => $path]);
@@ -61,10 +62,11 @@ class GraphicCardController extends Controller {
         return redirect()->route('graphic-cards.index');
     }
 
-    public function edit(GraphicCard $graphicCard) {
+    public function edit(GraphicCard $graphicCard)
+    {
         $brands = \App\Models\Brand::all();
         $servers = \App\Models\Server::all();
-        $graphicCard->load('brand', 'image', 'servers'); // Load all related data
+        $graphicCard->load('brand', 'image', 'servers');
         return Inertia::render('GraphicCards/Edit', [
             'graphicCard' => $graphicCard,
             'brands' => $brands,
@@ -72,9 +74,9 @@ class GraphicCardController extends Controller {
         ]);
     }
 
-    // Update GraphicCard
-    public function update(Request $request, GraphicCard $graphicCard) {
-        // Validate the incoming request data
+
+    public function update(Request $request, GraphicCard $graphicCard)
+    {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'brand_id' => 'required|exists:brands,id',
@@ -84,10 +86,9 @@ class GraphicCardController extends Controller {
             'price' => 'nullable|numeric|min:0',
             'server_ids' => 'nullable|array',
             'server_ids.*' => 'exists:servers,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Only validate image if provided
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Update the GraphicCard model with the validated data
         $graphicCard->update([
             'name' => $validated['name'],
             'gpu_architecture' => $validated['gpu_architecture'] ?? $graphicCard->gpu_architecture,
@@ -97,53 +98,42 @@ class GraphicCardController extends Controller {
             'brand_id' => $validated['brand_id'],
         ]);
 
-        // Sync the servers if any server_ids are provided
         if (isset($validated['server_ids'])) {
             $graphicCard->servers()->sync($validated['server_ids']);
         }
 
-        // Check if a new image is uploaded
         if ($request->hasFile('image')) {
-            // Delete the old image if it exists
             if ($graphicCard->image) {
-                // Delete the old image from the storage
                 Storage::disk('public')->delete($graphicCard->image->url);
-                // Delete the old image record
                 $graphicCard->image()->delete();
             }
 
-            // Store the new image
             $path = $request->file('image')->store('graphic_cards', 'public');
 
-            // Create a new image record associated with the GraphicCard
             $graphicCard->image()->create(['url' => $path]);
         }
 
-        // Redirect back to the GraphicCard index or show the updated GraphicCard
         return redirect()->route('graphic-cards.index');
     }
 
-    public function show(GraphicCard $graphicCard) {
-        // Load the related brand, image, and servers
+    public function show(GraphicCard $graphicCard)
+    {
         $graphicCard->load('brand', 'image', 'servers');
 
-        // Pass the GraphicCard data to the Inertia view
         return Inertia::render('GraphicCards/Show', [
             'graphicCard' => $graphicCard,
         ]);
     }
 
-    public function destroy(GraphicCard $graphicCard) {
-        // Delete the related image if it exists
+    public function destroy(GraphicCard $graphicCard)
+    {
         if ($graphicCard->image) {
             Storage::disk('public')->delete($graphicCard->image->url);
             $graphicCard->image()->delete();
         }
 
-        // Detach servers if any are attached
         $graphicCard->servers()->detach();
 
-        // Delete the GraphicCard
         $graphicCard->delete();
 
         return redirect()->route('graphic-cards.index');

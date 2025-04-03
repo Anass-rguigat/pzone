@@ -1,60 +1,73 @@
-import React, { useState } from 'react';
-import { Inertia } from '@inertiajs/inertia';
+import { Link, useForm } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Layout } from '@/Layouts/layout';
 
-// Type definition for the form state
-interface BrandForm {
-  name: string;
-}
-
-interface EditProps {
-  brand: {
+interface Brand {
     id: number;
     name: string;
-  };
 }
 
-const Edit: React.FC<EditProps> = ({ brand }) => {
-  // Set the initial state using the brand data
-  const [form, setForm] = useState<BrandForm>({
-    name: brand.name,
-  });
+interface Props {
+    brand: Brand;
+}
 
-  // Handle form input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-  };
+export default function Edit({ brand }: Props) {
+    const { data, setData, post, progress, errors } = useForm({
+        name: brand.name,
+        _method: 'PUT',
+    });
 
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    Inertia.put(`/brands/${brand.id}`, { name: form.name });
-  };
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(`/brands/${brand.id}`);
+    };
 
-  return (
-    <AuthenticatedLayout
-      header={
-        <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-          Dashboard
-        </h2>
-      }
-    >
-      <h1>Edit Brand</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Name</label>
-          <input
-            type="text"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-          />
-        </div>
-        <button type="submit">Update Brand</button>
-      </form>
-    </AuthenticatedLayout>
-  );
-};
+    return (
+        <Layout>
+            <div className="px-4 py-6 sm:px-6">
+                <h1 className="text-2xl font-semibold mb-6">Modifier une Marque</h1>
 
-export default Edit;
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nom de la Marque</label>
+                            <input
+                                type="text"
+                                name="name"
+                                id="name"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.name && <p className="text-red-600 text-sm">{errors.name}</p>}
+                        </div>
+                    </div>
+
+                    {progress && (
+                        <div className="w-full bg-gray-200 rounded">
+                            <div
+                                className="bg-blue-500 text-xs leading-none py-1 text-center text-white"
+                                style={{ width: `${progress.percentage}%` }}
+                            >
+                                {progress.percentage}%
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex items-center justify-end space-x-4 ">
+                        <button
+                            type="submit"
+                            className="text-green-900 hover:text-white border border-green-800 hover:bg-green-900 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-600 dark:text-green-400 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800"
+                        >
+                            Modifier Marque
+                        </button>
+                        <Link href="/brands" className="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+                            Retour à la liste
+                        </Link>
+                    </div>
+                </form>
+            </div>
+        </Layout>
+    );
+}

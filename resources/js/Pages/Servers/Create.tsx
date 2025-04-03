@@ -1,6 +1,6 @@
 import { Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Layout } from '@/Layouts/layout';
 
 interface Brand {
     id: number;
@@ -31,6 +31,8 @@ interface Props {
     graphicCards: Component[];
     fiberOpticCards: Component[];
     expansionCards: Component[];
+    cableConnectors?: Component[];
+    batteries?: Component[];
 }
 
 export default function Create({
@@ -46,9 +48,11 @@ export default function Create({
     chassis,
     graphicCards,
     fiberOpticCards,
-    expansionCards
+    expansionCards,
+    cableConnectors = [],
+    batteries = [],
 }: Props) {
-    const { data, setData, post, progress, errors } = useForm({
+    const { data, setData, post, progress, errors, processing } = useForm({
         name: '',
         brand_id: 0,
         model: '',
@@ -72,6 +76,8 @@ export default function Create({
         graphic_card_ids: [] as number[],
         fiber_optic_card_ids: [] as number[],
         expansion_card_ids: [] as number[],
+        cable_ids: [] as number[],
+        battery_ids: [] as number[],
     });
 
     const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -92,430 +98,487 @@ export default function Create({
     };
 
     return (
-        <AuthenticatedLayout
+        <Layout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                    Serveur
+                    Ajouter un Serveur
                 </h2>
             }
         >
-            <h1 className="text-2xl font-bold mb-4">Ajouter un Serveur</h1>
+            <div className="px-4 py-6 sm:px-6">
+                <h1 className="text-2xl font-semibold mb-6">Ajouter un Nouveau Serveur</h1>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Server Name */}
-                <div>
-                    <label className="block font-medium">Nom du Serveur</label>
-                    <input
-                        type="text"
-                        value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
-                        className="w-full border p-2 rounded"
-                        required
-                    />
-                    {errors.name && <div className="text-red-600 text-sm">{errors.name}</div>}
-                </div>
-
-                {/* Server Model */}
-                <div>
-                    <label className="block font-medium">Modèle du Serveur</label>
-                    <input
-                        type="text"
-                        value={data.model}
-                        onChange={(e) => setData('model', e.target.value)}
-                        className="w-full border p-2 rounded"
-                        required
-                    />
-                    {errors.model && <div className="text-red-600 text-sm">{errors.model}</div>}
-                </div>
-
-                {/* CPU Socket */}
-                <div>
-                    <label className="block font-medium">Socket CPU</label>
-                    <input
-                        type="text"
-                        value={data.cpu_socket}
-                        onChange={(e) => setData('cpu_socket', e.target.value)}
-                        className="w-full border p-2 rounded"
-                        required
-                    />
-                    {errors.cpu_socket && <div className="text-red-600 text-sm">{errors.cpu_socket}</div>}
-                </div>
-
-                {/* RAM Slots */}
-                <div>
-                    <label className="block font-medium">Slots RAM</label>
-                    <input
-                        type="number"
-                        value={data.ram_slots}
-                        onChange={(e) => setData('ram_slots', Number(e.target.value))}
-                        className="w-full border p-2 rounded"
-                        required
-                    />
-                    {errors.ram_slots && <div className="text-red-600 text-sm">{errors.ram_slots}</div>}
-                </div>
-
-                {/* Storage Slots */}
-                <div>
-                    <label className="block font-medium">Slots de stockage</label>
-                    <input
-                        type="number"
-                        value={data.storage_slots}
-                        onChange={(e) => setData('storage_slots', Number(e.target.value))}
-                        className="w-full border p-2 rounded"
-                        required
-                    />
-                    {errors.storage_slots && <div className="text-red-600 text-sm">{errors.storage_slots}</div>}
-                </div>
-
-                {/* Power Supply Type */}
-                <div>
-                    <label className="block font-medium">Type d'alimentation</label>
-                    <input
-                        type="text"
-                        value={data.power_supply_type}
-                        onChange={(e) => setData('power_supply_type', e.target.value)}
-                        className="w-full border p-2 rounded"
-                        required
-                    />
-                    {errors.power_supply_type && <div className="text-red-600 text-sm">{errors.power_supply_type}</div>}
-                </div>
-
-                {/* Rack Mountable */}
-                <div>
-                    <label className="block font-medium">Rack Mountable</label>
-                    <input
-                        type="checkbox"
-                        checked={data.rack_mountable}
-                        onChange={(e) => setData('rack_mountable', e.target.checked)}
-                        className="w-4 h-4"
-                    />
-                    {errors.rack_mountable && <div className="text-red-600 text-sm">{errors.rack_mountable}</div>}
-                </div>
-
-                {/* Form Factor */}
-                <div>
-                    <label className="block font-medium">Form Factor</label>
-                    <input
-                        type="text"
-                        value={data.form_factor}
-                        onChange={(e) => setData('form_factor', e.target.value)}
-                        className="w-full border p-2 rounded"
-                        required
-                    />
-                    {errors.form_factor && <div className="text-red-600 text-sm">{errors.form_factor}</div>}
-                </div>
-
-                {/* Price */}
-                <div>
-                    <label className="block font-medium">Prix du Serveur</label>
-                    <input
-                        type="number"
-                        value={data.price}
-                        onChange={(e) => setData('price', Number(e.target.value))}
-                        className="w-full border p-2 rounded"
-                        required
-                        step="0.01"
-                    />
-                    {errors.price && <div className="text-red-600 text-sm">{errors.price}</div>}
-                </div>
-
-                {/* Brand Selection */}
-                <div>
-                    <label className="block font-medium">Marque</label>
-                    <select
-                        value={data.brand_id ?? 0}
-                        onChange={(e) => setData('brand_id', Number(e.target.value))}
-                        className="w-full border p-2 rounded"
-                        required
-                    >
-                        <option value={0}>Sélectionner une marque</option>
-                        {brands.map((brand) => (
-                            <option key={brand.id} value={brand.id}>
-                                {brand.name}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.brand_id && <div className="text-red-600 text-sm">{errors.brand_id}</div>}
-                </div>
-
-                {/* RAM Selection */}
-                <div>
-                    <label className="block font-medium">RAMs associées</label>
-                    <select
-                        multiple
-                        value={data.ram_ids}
-                        onChange={(e) => {
-                            const selectedValues = Array.from(e.target.selectedOptions, (option) => Number(option.value));
-                            setData('ram_ids', selectedValues);
-                        }}
-                        className="w-full border p-2 rounded"
-                    >
-                        {rams.map((ram) => (
-                            <option key={ram.id} value={ram.id}>
-                                {ram.name}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.ram_ids && <div className="text-red-600 text-sm">{errors.ram_ids}</div>}
-                </div>
-
-                {/* Component (Hard Drives) */}
-                <div>
-                    <label className="block font-medium">Disques Durs Associés</label>
-                    <select
-                        multiple
-                        value={data.hard_drive_ids}
-                        onChange={(e) => {
-                            const selectedValues = Array.from(e.target.selectedOptions, (option) => Number(option.value));
-                            setData('hard_drive_ids', selectedValues);
-                        }}
-                        className="w-full border p-2 rounded"
-                    >
-                        {hardDrives.map((hardDrive) => (
-                            <option key={hardDrive.id} value={hardDrive.id}>
-                                {hardDrive.name}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.hard_drive_ids && <div className="text-red-600 text-sm">{errors.hard_drive_ids}</div>}
-                </div>
-
-                {/* Component (Processors) */}
-                <div>
-                    <label className="block font-medium">Processors Associés</label>
-                    <select
-                        multiple
-                        value={data.processor_ids}
-                        onChange={(e) => {
-                            const selectedValues = Array.from(e.target.selectedOptions, (option) => Number(option.value));
-                            setData('processor_ids', selectedValues);
-                        }}
-                        className="w-full border p-2 rounded"
-                    >
-                        {processors.map((processor) => (
-                            <option key={processor.id} value={processor.id}>
-                                {processor.name}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.processor_ids && <div className="text-red-600 text-sm">{errors.processor_ids}</div>}
-                </div>
-                                {/* Power Supplies Selection */}
-                                <div>
-                    <label className="block font-medium">Alimentations Associées</label>
-                    <select
-                        multiple
-                        value={data.power_supply_ids}
-                        onChange={(e) => {
-                            const selectedValues = Array.from(e.target.selectedOptions, (option) => Number(option.value));
-                            setData('power_supply_ids', selectedValues);
-                        }}
-                        className="w-full border p-2 rounded"
-                    >
-                        {powerSupplies.map((powerSupply) => (
-                            <option key={powerSupply.id} value={powerSupply.id}>
-                                {powerSupply.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Motherboards Selection */}
-                <div>
-                    <label className="block font-medium">Cartes Mères Associées</label>
-                    <select
-                        multiple
-                        value={data.motherboard_ids}
-                        onChange={(e) => {
-                            const selectedValues = Array.from(e.target.selectedOptions, (option) => Number(option.value));
-                            setData('motherboard_ids', selectedValues);
-                        }}
-                        className="w-full border p-2 rounded"
-                    >
-                        {motherboards.map((motherboard) => (
-                            <option key={motherboard.id} value={motherboard.id}>
-                                {motherboard.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Network Cards Selection */}
-                <div>
-                    <label className="block font-medium">Cartes Réseau Associées</label>
-                    <select
-                        multiple
-                        value={data.network_card_ids}
-                        onChange={(e) => {
-                            const selectedValues = Array.from(e.target.selectedOptions, (option) => Number(option.value));
-                            setData('network_card_ids', selectedValues);
-                        }}
-                        className="w-full border p-2 rounded"
-                    >
-                        {networkCards.map((networkCard) => (
-                            <option key={networkCard.id} value={networkCard.id}>
-                                {networkCard.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* RAID Controllers Selection */}
-                <div>
-                    <label className="block font-medium">Contrôleurs RAID Associés</label>
-                    <select
-                        multiple
-                        value={data.raid_controller_ids}
-                        onChange={(e) => {
-                            const selectedValues = Array.from(e.target.selectedOptions, (option) => Number(option.value));
-                            setData('raid_controller_ids', selectedValues);
-                        }}
-                        className="w-full border p-2 rounded"
-                    >
-                        {raidControllers.map((raidController) => (
-                            <option key={raidController.id} value={raidController.id}>
-                                {raidController.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Cooling Solutions Selection */}
-                <div>
-                    <label className="block font-medium">Solutions de Refroidissement Associées</label>
-                    <select
-                        multiple
-                        value={data.cooling_solution_ids}
-                        onChange={(e) => {
-                            const selectedValues = Array.from(e.target.selectedOptions, (option) => Number(option.value));
-                            setData('cooling_solution_ids', selectedValues);
-                        }}
-                        className="w-full border p-2 rounded"
-                    >
-                        {coolingSolutions.map((coolingSolution) => (
-                            <option key={coolingSolution.id} value={coolingSolution.id}>
-                                {coolingSolution.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Chassis Selection */}
-                <div>
-                    <label className="block font-medium">Châssis Associés</label>
-                    <select
-                        multiple
-                        value={data.chassis_ids}
-                        onChange={(e) => {
-                            const selectedValues = Array.from(e.target.selectedOptions, (option) => Number(option.value));
-                            setData('chassis_ids', selectedValues);
-                        }}
-                        className="w-full border p-2 rounded"
-                    >
-                        {chassis.map((chass) => (
-                            <option key={chass.id} value={chass.id}>
-                                {chass.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Graphic Cards Selection */}
-                <div>
-                    <label className="block font-medium">Cartes Graphiques Associées</label>
-                    <select
-                        multiple
-                        value={data.graphic_card_ids}
-                        onChange={(e) => {
-                            const selectedValues = Array.from(e.target.selectedOptions, (option) => Number(option.value));
-                            setData('graphic_card_ids', selectedValues);
-                        }}
-                        className="w-full border p-2 rounded"
-                    >
-                        {graphicCards.map((graphicCard) => (
-                            <option key={graphicCard.id} value={graphicCard.id}>
-                                {graphicCard.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Fiber Optic Cards Selection */}
-                <div>
-                    <label className="block font-medium">Cartes Fibre Optique Associées</label>
-                    <select
-                        multiple
-                        value={data.fiber_optic_card_ids}
-                        onChange={(e) => {
-                            const selectedValues = Array.from(e.target.selectedOptions, (option) => Number(option.value));
-                            setData('fiber_optic_card_ids', selectedValues);
-                        }}
-                        className="w-full border p-2 rounded"
-                    >
-                        {fiberOpticCards.map((fiberOpticCard) => (
-                            <option key={fiberOpticCard.id} value={fiberOpticCard.id}>
-                                {fiberOpticCard.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Expansion Cards Selection */}
-                <div>
-                    <label className="block font-medium">Cartes d'Expansion Associées</label>
-                    <select
-                        multiple
-                        value={data.expansion_card_ids}
-                        onChange={(e) => {
-                            const selectedValues = Array.from(e.target.selectedOptions, (option) => Number(option.value));
-                            setData('expansion_card_ids', selectedValues);
-                        }}
-                        className="w-full border p-2 rounded"
-                    >
-                        {expansionCards.map((expansionCard) => (
-                            <option key={expansionCard.id} value={expansionCard.id}>
-                                {expansionCard.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Image Upload (Preview) */}
-                <div>
-                    <label className="block font-medium">Image du Serveur</label>
-                    <input
-                        type="file"
-                        onChange={handleImageChange}
-                        className="w-full border p-2 rounded"
-                    />
-                    {previewImage && (
-                        <div className="mt-2">
-                            <img src={previewImage} alt="Prévisualisation" className="w-32 h-32 object-cover rounded" />
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                                Nom du Serveur
+                            </label>
+                            <input
+                                type="text"
+                                id="name"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                required
+                            />
+                            {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
                         </div>
-                    )}
-                    {errors.image && <div className="text-red-600 text-sm">{errors.image}</div>}
-                </div>
 
-                {/* Upload Progress Bar */}
-                {progress && (
-                    <div className="w-full bg-gray-200 rounded">
-                        <div className="bg-blue-500 text-xs leading-none py-1 text-center text-white" style={{ width: `${progress.percentage}%` }}>
-                            {progress.percentage}%
+                        <div>
+                            <label htmlFor="model" className="block text-sm font-medium text-gray-700">
+                                Modèle
+                            </label>
+                            <input
+                                type="text"
+                                id="model"
+                                value={data.model}
+                                onChange={(e) => setData('model', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                required
+                            />
+                            {errors.model && <p className="text-red-600 text-sm mt-1">{errors.model}</p>}
                         </div>
                     </div>
-                )}
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label htmlFor="cpu_socket" className="block text-sm font-medium text-gray-700">
+                                Socket CPU
+                            </label>
+                            <input
+                                type="text"
+                                id="cpu_socket"
+                                value={data.cpu_socket}
+                                onChange={(e) => setData('cpu_socket', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                required
+                            />
+                            {errors.cpu_socket && <p className="text-red-600 text-sm mt-1">{errors.cpu_socket}</p>}
+                        </div>
 
-                {/* Submit and Cancel Buttons */}
-                <div className="flex space-x-4">
-                    <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
-                        Ajouter Serveur
-                    </button>
-                    <Link href="/servers" className="bg-gray-500 text-white px-4 py-2 rounded">
-                        Retour à la liste
-                    </Link>
-                </div>
-            </form>
-        </AuthenticatedLayout>
+                        <div>
+                            <label htmlFor="brand_id" className="block text-sm font-medium text-gray-700">
+                                Marque
+                            </label>
+                            <select
+                                id="brand_id"
+                                value={data.brand_id}
+                                onChange={(e) => setData('brand_id', Number(e.target.value))}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                required
+                            >
+                                <option value={0}>Sélectionner une marque</option>
+                                {brands.map((brand) => (
+                                    <option key={brand.id} value={brand.id}>
+                                        {brand.name}
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.brand_id && <p className="text-red-600 text-sm mt-1">{errors.brand_id}</p>}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        <div>
+                            <label htmlFor="ram_slots" className="block text-sm font-medium text-gray-700">
+                                Slots RAM
+                            </label>
+                            <input
+                                type="number"
+                                id="ram_slots"
+                                value={data.ram_slots}
+                                onChange={(e) => setData('ram_slots', Number(e.target.value))}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                required
+                            />
+                            {errors.ram_slots && <p className="text-red-600 text-sm mt-1">{errors.ram_slots}</p>}
+                        </div>
+
+                        <div>
+                            <label htmlFor="storage_slots" className="block text-sm font-medium text-gray-700">
+                                Slots Stockage
+                            </label>
+                            <input
+                                type="number"
+                                id="storage_slots"
+                                value={data.storage_slots}
+                                onChange={(e) => setData('storage_slots', Number(e.target.value))}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                required
+                            />
+                            {errors.storage_slots && <p className="text-red-600 text-sm mt-1">{errors.storage_slots}</p>}
+                        </div>
+
+                        <div>
+                            <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+                                Prix (€)
+                            </label>
+                            <input
+                                type="number"
+                                id="price"
+                                value={data.price}
+                                onChange={(e) => setData('price', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                required
+                                step="0.01"
+                            />
+                            {errors.price && <p className="text-red-600 text-sm mt-1">{errors.price}</p>}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label htmlFor="power_supply_type" className="block text-sm font-medium text-gray-700">
+                                Type Alimentation
+                            </label>
+                            <input
+                                type="text"
+                                id="power_supply_type"
+                                value={data.power_supply_type}
+                                onChange={(e) => setData('power_supply_type', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                required
+                            />
+                            {errors.power_supply_type && <p className="text-red-600 text-sm mt-1">{errors.power_supply_type}</p>}
+                        </div>
+
+                        <div>
+                            <label htmlFor="form_factor" className="block text-sm font-medium text-gray-700">
+                                Format
+                            </label>
+                            <input
+                                type="text"
+                                id="form_factor"
+                                value={data.form_factor}
+                                onChange={(e) => setData('form_factor', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                required
+                            />
+                            {errors.form_factor && <p className="text-red-600 text-sm mt-1">{errors.form_factor}</p>}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                        <label className="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                checked={data.rack_mountable}
+                                onChange={(e) => setData('rack_mountable', e.target.checked)}
+                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                            />
+                            <span className="text-sm text-gray-700">Rack Mountable</span>
+                        </label>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div>
+                                <label htmlFor="ram_ids" className="block text-sm font-medium text-gray-700">
+                                    RAMs
+                                </label>
+                                <select
+                                    multiple
+                                    id="ram_ids"
+                                    value={data.ram_ids}
+                                    onChange={(e) => setData('ram_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {rams.map((ram) => (
+                                        <option key={ram.id} value={ram.id}>{ram.name}</option>
+                                    ))}
+                                </select>
+                                {errors.ram_ids && <p className="text-red-600 text-sm mt-1">{errors.ram_ids}</p>}
+                            </div>
+
+                            <div>
+                                <label htmlFor="hard_drive_ids" className="block text-sm font-medium text-gray-700">
+                                    Disques Durs
+                                </label>
+                                <select
+                                    multiple
+                                    id="hard_drive_ids"
+                                    value={data.hard_drive_ids}
+                                    onChange={(e) => setData('hard_drive_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {hardDrives.map((drive) => (
+                                        <option key={drive.id} value={drive.id}>{drive.name}</option>
+                                    ))}
+                                </select>
+                                {errors.hard_drive_ids && <p className="text-red-600 text-sm mt-1">{errors.hard_drive_ids}</p>}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div>
+                                <label htmlFor="processor_ids" className="block text-sm font-medium text-gray-700">
+                                    Processeurs
+                                </label>
+                                <select
+                                    multiple
+                                    id="processor_ids"
+                                    value={data.processor_ids}
+                                    onChange={(e) => setData('processor_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {processors.map((processor) => (
+                                        <option key={processor.id} value={processor.id}>{processor.name}</option>
+                                    ))}
+                                </select>
+                                {errors.processor_ids && <p className="text-red-600 text-sm mt-1">{errors.processor_ids}</p>}
+                            </div>
+
+                            <div>
+                                <label htmlFor="power_supply_ids" className="block text-sm font-medium text-gray-700">
+                                    Alimentations
+                                </label>
+                                <select
+                                    multiple
+                                    id="power_supply_ids"
+                                    value={data.power_supply_ids}
+                                    onChange={(e) => setData('power_supply_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {powerSupplies.map((power) => (
+                                        <option key={power.id} value={power.id}>{power.name}</option>
+                                    ))}
+                                </select>
+                                {errors.power_supply_ids && <p className="text-red-600 text-sm mt-1">{errors.power_supply_ids}</p>}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div>
+                                <label htmlFor="motherboard_ids" className="block text-sm font-medium text-gray-700">
+                                    Cartes Mères
+                                </label>
+                                <select
+                                    multiple
+                                    id="motherboard_ids"
+                                    value={data.motherboard_ids}
+                                    onChange={(e) => setData('motherboard_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {motherboards.map((board) => (
+                                        <option key={board.id} value={board.id}>{board.name}</option>
+                                    ))}
+                                </select>
+                                {errors.motherboard_ids && <p className="text-red-600 text-sm mt-1">{errors.motherboard_ids}</p>}
+                            </div>
+
+                            <div>
+                                <label htmlFor="network_card_ids" className="block text-sm font-medium text-gray-700">
+                                    Cartes Réseau
+                                </label>
+                                <select
+                                    multiple
+                                    id="network_card_ids"
+                                    value={data.network_card_ids}
+                                    onChange={(e) => setData('network_card_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {networkCards.map((card) => (
+                                        <option key={card.id} value={card.id}>{card.name}</option>
+                                    ))}
+                                </select>
+                                {errors.network_card_ids && <p className="text-red-600 text-sm mt-1">{errors.network_card_ids}</p>}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div>
+                                <label htmlFor="raid_controller_ids" className="block text-sm font-medium text-gray-700">
+                                    Contrôleurs RAID
+                                </label>
+                                <select
+                                    multiple
+                                    id="raid_controller_ids"
+                                    value={data.raid_controller_ids}
+                                    onChange={(e) => setData('raid_controller_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {raidControllers.map((raid) => (
+                                        <option key={raid.id} value={raid.id}>{raid.name}</option>
+                                    ))}
+                                </select>
+                                {errors.raid_controller_ids && <p className="text-red-600 text-sm mt-1">{errors.raid_controller_ids}</p>}
+                            </div>
+
+                            <div>
+                                <label htmlFor="cooling_solution_ids" className="block text-sm font-medium text-gray-700">
+                                    Solutions de Refroidissement
+                                </label>
+                                <select
+                                    multiple
+                                    id="cooling_solution_ids"
+                                    value={data.cooling_solution_ids}
+                                    onChange={(e) => setData('cooling_solution_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {coolingSolutions.map((cooling) => (
+                                        <option key={cooling.id} value={cooling.id}>{cooling.name}</option>
+                                    ))}
+                                </select>
+                                {errors.cooling_solution_ids && <p className="text-red-600 text-sm mt-1">{errors.cooling_solution_ids}</p>}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div>
+                                <label htmlFor="chassis_ids" className="block text-sm font-medium text-gray-700">
+                                    Châssis
+                                </label>
+                                <select
+                                    multiple
+                                    id="chassis_ids"
+                                    value={data.chassis_ids}
+                                    onChange={(e) => setData('chassis_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {chassis.map((chass) => (
+                                        <option key={chass.id} value={chass.id}>{chass.name}</option>
+                                    ))}
+                                </select>
+                                {errors.chassis_ids && <p className="text-red-600 text-sm mt-1">{errors.chassis_ids}</p>}
+                            </div>
+
+                            <div>
+                                <label htmlFor="graphic_card_ids" className="block text-sm font-medium text-gray-700">
+                                    Cartes Graphiques
+                                </label>
+                                <select
+                                    multiple
+                                    id="graphic_card_ids"
+                                    value={data.graphic_card_ids}
+                                    onChange={(e) => setData('graphic_card_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {graphicCards.map((gpu) => (
+                                        <option key={gpu.id} value={gpu.id}>{gpu.name}</option>
+                                    ))}
+                                </select>
+                                {errors.graphic_card_ids && <p className="text-red-600 text-sm mt-1">{errors.graphic_card_ids}</p>}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div>
+                                <label htmlFor="fiber_optic_card_ids" className="block text-sm font-medium text-gray-700">
+                                    Cartes Fibre Optique
+                                </label>
+                                <select
+                                    multiple
+                                    id="fiber_optic_card_ids"
+                                    value={data.fiber_optic_card_ids}
+                                    onChange={(e) => setData('fiber_optic_card_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {fiberOpticCards.map((fiber) => (
+                                        <option key={fiber.id} value={fiber.id}>{fiber.name}</option>
+                                    ))}
+                                </select>
+                                {errors.fiber_optic_card_ids && <p className="text-red-600 text-sm mt-1">{errors.fiber_optic_card_ids}</p>}
+                            </div>
+
+                            <div>
+                                <label htmlFor="expansion_card_ids" className="block text-sm font-medium text-gray-700">
+                                    Cartes d'Expansion
+                                </label>
+                                <select
+                                    multiple
+                                    id="expansion_card_ids"
+                                    value={data.expansion_card_ids}
+                                    onChange={(e) => setData('expansion_card_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {expansionCards.map((expansion) => (
+                                        <option key={expansion.id} value={expansion.id}>{expansion.name}</option>
+                                    ))}
+                                </select>
+                                {errors.expansion_card_ids && <p className="text-red-600 text-sm mt-1">{errors.expansion_card_ids}</p>}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div>
+                                <label htmlFor="cable_ids" className="block text-sm font-medium text-gray-700">
+                                    Câbles
+                                </label>
+                                <select
+                                    multiple
+                                    id="cable_ids"
+                                    value={data.cable_ids}
+                                    onChange={(e) => setData('cable_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {cableConnectors.map((cable) => (
+                                        <option key={cable.id} value={cable.id}>{cable.name}</option>
+                                    ))}
+                                </select>
+                                {errors.cable_ids && <p className="text-red-600 text-sm mt-1">{errors.cable_ids}</p>}
+                            </div>
+
+                            <div>
+                                <label htmlFor="battery_ids" className="block text-sm font-medium text-gray-700">
+                                    Batteries
+                                </label>
+                                <select
+                                    multiple
+                                    id="battery_ids"
+                                    value={data.battery_ids}
+                                    onChange={(e) => setData('battery_ids', Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                >
+                                    {batteries.map((battery) => (
+                                        <option key={battery.id} value={battery.id}>{battery.name}</option>
+                                    ))}
+                                </select>
+                                {errors.battery_ids && <p className="text-red-600 text-sm mt-1">{errors.battery_ids}</p>}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label htmlFor="image" className="block text-sm font-medium text-gray-700">
+                            Image
+                        </label>
+                        <div className="mt-1 flex items-center">
+                            <label htmlFor="image" className="flex justify-center items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md cursor-pointer hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+                                Choisir un fichier
+                            </label>
+                            <input
+                                type="file"
+                                id="image"
+                                onChange={handleImageChange}
+                                className="hidden"
+                            />
+                            {data.image && <p className="ml-2 text-sm text-gray-500">{data.image.name}</p>}
+                            {previewImage && (
+                                <div className="ml-4">
+                                    <img src={previewImage} alt="Preview" className="w-16 h-16 object-cover rounded" />
+                                </div>
+                            )}
+                        </div>
+                        {errors.image && <p className="text-red-600 text-sm mt-1">{errors.image}</p>}
+                    </div>
+
+                    <div className="flex items-center justify-end space-x-4 ">
+                        <button
+                            type="submit"
+                            className="text-green-900 hover:text-white border border-green-800 hover:bg-green-900 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-600 dark:text-green-400 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800"
+                            disabled={processing}
+                        >
+                            {processing ? 'Enregistrement...' : 'Créer le Serveur'}
+                        </button>
+                        <Link
+                            href="/servers"
+                            className="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800"
+                        >
+                            Retour à la liste
+                        </Link>
+                    </div>
+                </form>
+            </div>
+        </Layout>
     );
 }
-

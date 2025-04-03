@@ -1,6 +1,7 @@
-import { useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Layout } from '@/Layouts/layout';
 
 interface Brand {
     id: number;
@@ -39,21 +40,20 @@ export default function Create({ brands, servers }: Props) {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const file = e.target.files[0];
-            setSelectedImage(URL.createObjectURL(file)); // Display the selected image
+            setSelectedImage(URL.createObjectURL(file));
             setData('image', file);
         }
     };
 
     const handleServerSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedValues = Array.from(e.target.selectedOptions, (option) => option.value);
-        setData('server_ids', selectedValues.map(Number)); // Convert to numbers
+        setData('server_ids', selectedValues.map(Number));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post('/fiber-optic-cards', {
             onSuccess: () => {
-                // Reset form and selected image upon success
                 setData({
                     name: '',
                     brand_id: '',
@@ -70,136 +70,145 @@ export default function Create({ brands, servers }: Props) {
     };
 
     return (
-        <AuthenticatedLayout
-            header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                    Dashboard
-                </h2>
-            }
-        >
-            <h1>Ajouter une carte fibre optique</h1>
-            <form onSubmit={handleSubmit} encType="multipart/form-data">
-                <div>
-                    <label htmlFor="name">Nom de la carte:</label>
-                    <input
-                        type="text"
-                        name="name"
-                        value={data.name}
-                        onChange={handleChange}
-                        className="mt-1 p-2 border rounded"
-                    />
-                    {errors.name && <div className="text-red-600 text-sm">{errors.name}</div>}
-                </div>
+        <Layout>
+            <div className="px-4 py-6 sm:px-6">
+                <h1 className="text-2xl font-semibold mb-6">Ajouter une Carte Fibre Optique</h1>
 
-                <div className="mt-4">
-                    <label htmlFor="brand_id">Marque:</label>
-                    <select
-                        name="brand_id"
-                        value={data.brand_id}
-                        onChange={handleChange}
-                        className="mt-1 p-2 border rounded"
-                    >
-                        <option value="">Sélectionner une marque</option>
-                        {brands.map((brand) => (
-                            <option key={brand.id} value={brand.id}>
-                                {brand.name}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.brand_id && <div className="text-red-600 text-sm">{errors.brand_id}</div>}
-                </div>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nom de la Carte</label>
+                            <input
+                                type="text"
+                                name="name"
+                                value={data.name}
+                                onChange={handleChange}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.name && <p className="text-red-600 text-sm">{errors.name}</p>}
+                        </div>
 
-                <div className="mt-4">
-                    <label htmlFor="fiber_type">Type de fibre:</label>
-                    <input
-                        type="text"
-                        name="fiber_type"
-                        value={data.fiber_type}
-                        onChange={handleChange}
-                        className="mt-1 p-2 border rounded"
-                    />
-                    {errors.fiber_type && <div className="text-red-600 text-sm">{errors.fiber_type}</div>}
-                </div>
+                        <div>
+                            <label htmlFor="brand_id" className="block text-sm font-medium text-gray-700">Marque</label>
+                            <select
+                                name="brand_id"
+                                value={data.brand_id}
+                                onChange={handleChange}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            >
+                                <option value="">Sélectionner une Marque</option>
+                                {brands.map((brand) => (
+                                    <option key={brand.id} value={brand.id}>
+                                        {brand.name}
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.brand_id && <p className="text-red-600 text-sm">{errors.brand_id}</p>}
+                        </div>
+                    </div>
 
-                <div className="mt-4">
-                    <label htmlFor="speed">Vitesse (Mbps):</label>
-                    <input
-                        type="number"
-                        name="speed"
-                        value={data.speed}
-                        onChange={handleChange}
-                        className="mt-1 p-2 border rounded"
-                        placeholder="Vitesse en Mbps"
-                    />
-                    {errors.speed && <div className="text-red-600 text-sm">{errors.speed}</div>}
-                </div>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label htmlFor="fiber_type" className="block text-sm font-medium text-gray-700">Type de Fibre</label>
+                            <input
+                                type="text"
+                                name="fiber_type"
+                                value={data.fiber_type}
+                                onChange={handleChange}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.fiber_type && <p className="text-red-600 text-sm">{errors.fiber_type}</p>}
+                        </div>
 
-                <div className="mt-4">
-                    <label htmlFor="power_rating">Consommation (W):</label>
-                    <input
-                        type="number"
-                        name="power_rating"
-                        value={data.power_rating}
-                        onChange={handleChange}
-                        className="mt-1 p-2 border rounded"
-                        placeholder="Consommation en Watts"
-                    />
-                    {errors.power_rating && <div className="text-red-600 text-sm">{errors.power_rating}</div>}
-                </div>
+                        <div>
+                            <label htmlFor="speed" className="block text-sm font-medium text-gray-700">Vitesse (Mbps)</label>
+                            <input
+                                type="number"
+                                name="speed"
+                                value={data.speed}
+                                onChange={handleChange}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.speed && <p className="text-red-600 text-sm">{errors.speed}</p>}
+                        </div>
+                    </div>
 
-                <div className="mt-4">
-                    <label htmlFor="price">Prix:</label>
-                    <input
-                        type="number"
-                        name="price"
-                        value={data.price}
-                        onChange={handleChange}
-                        className="mt-1 p-2 border rounded"
-                        placeholder="Prix en €"
-                    />
-                    {errors.price && <div className="text-red-600 text-sm">{errors.price}</div>}
-                </div>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label htmlFor="power_rating" className="block text-sm font-medium text-gray-700">Consommation (W)</label>
+                            <input
+                                type="number"
+                                name="power_rating"
+                                value={data.power_rating}
+                                onChange={handleChange}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.power_rating && <p className="text-red-600 text-sm">{errors.power_rating}</p>}
+                        </div>
 
-                <div className="mt-4">
-                    <label htmlFor="image">Image:</label>
-                    <input
-                        type="file"
-                        name="image"
-                        onChange={handleFileChange}
-                        className="mt-1 p-2 border rounded"
-                    />
-                    {selectedImage && <img src={selectedImage} alt="Preview" className="mt-2" width="150" />}
-                    {errors.image && <div className="text-red-600 text-sm">{errors.image}</div>}
-                </div>
+                        <div>
+                            <label htmlFor="price" className="block text-sm font-medium text-gray-700">Prix (€)</label>
+                            <input
+                                type="number"
+                                name="price"
+                                value={data.price}
+                                onChange={handleChange}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            {errors.price && <p className="text-red-600 text-sm">{errors.price}</p>}
+                        </div>
+                    </div>
 
-                <div className="mt-4">
-                    <label htmlFor="servers">Serveurs associés:</label>
-                    <select
-                        name="server_ids"
-                        multiple
-                        value={data.server_ids}
-                        onChange={handleServerSelection}
-                        className="mt-1 p-2 border rounded"
-                    >
-                        {servers.map((server) => (
-                            <option key={server.id} value={server.id}>
-                                {server.name}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.server_ids && <div className="text-red-600 text-sm">{errors.server_ids}</div>}
-                </div>
+                    <div>
+                        <label htmlFor="image" className="block text-sm font-medium text-gray-700">Image</label>
+                        <div className="mt-1 flex items-center">
+                            <label htmlFor="image" className="flex justify-center items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md cursor-pointer hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+                                Choisir un fichier
+                            </label>
+                            <input
+                                type="file"
+                                name="image"
+                                id="image"
+                                onChange={(e) => setData('image', e.target.files ? e.target.files[0] : null)}
+                                className="hidden"
+                            />
+                            {data.image && <p className="ml-2 text-sm text-gray-500">{data.image.name}</p>}
+                        </div>
+                        {errors.image && <p className="text-red-600 text-sm">{errors.image}</p>}
+                    </div>
 
-                <div className="mt-4">
-                    <button
-                        type="submit"
-                        disabled={processing}
-                        className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-                    >
-                        {processing ? 'Enregistrement...' : 'Ajouter la carte fibre optique'}
-                    </button>
-                </div>
-            </form>
-        </AuthenticatedLayout>
+                    <div>
+                        <label htmlFor="server_ids" className="block text-sm font-medium text-gray-700">Serveurs Associés</label>
+                        <select
+                            name="server_ids"
+                            multiple
+                            value={data.server_ids}
+                            onChange={handleServerSelection}
+                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        >
+                            {servers.map((server) => (
+                                <option key={server.id} value={server.id}>
+                                    {server.name}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.server_ids && <p className="text-red-600 text-sm">{errors.server_ids}</p>}
+                    </div>
+
+                    <div className="flex items-center justify-end space-x-4">
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="text-green-900 hover:text-white border border-green-800 hover:bg-green-900 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-600 dark:text-green-400 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800"
+                        >
+                            {processing ? 'Enregistrement...' : 'Ajouter la Carte'}
+                        </button>
+                        <Link href="/fiber-optic-cards" className="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+                            Retour à la liste
+                        </Link>
+                    </div>
+                </form>
+            </div>
+        </Layout>
     );
 }

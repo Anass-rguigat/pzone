@@ -106,6 +106,18 @@ export default function Authenticated({
                                 Expansion Cards
                             </NavLink>
                             <NavLink
+                                href={route('cable-connectors.index')}  
+                                active={route().current('cable-connectors.index')}  
+                            >
+                                cable connectors
+                            </NavLink>
+                            <NavLink
+                                href={route('batteries.index')}  
+                                active={route().current('batteries.index')}  
+                            >
+                                batteries
+                            </NavLink>
+                            <NavLink
                                 href={route('rams.index')}  
                                 active={route().current('rams.index')}  
                             >
